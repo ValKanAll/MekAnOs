@@ -121,10 +121,9 @@ class WorkflowLauncherWindow(QDialog):
         self.tab_creator.setTabEnabled(2, False)
 
     def create_mekamesh_tab(self):
-        try:
-            self.mekameshTab = Mekamesh_tab(self)
-        except Exception as e:
-            print(e)
+
+        self.mekameshTab = Mekamesh_tab(self)
+
         self.tab_creator.addTab(self.mekameshTab, 'Mekamesh')
         self.tab_creator.setTabEnabled(3, False)
 

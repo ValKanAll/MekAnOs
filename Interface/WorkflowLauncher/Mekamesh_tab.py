@@ -14,38 +14,74 @@ from MekAnos.Material_assignment.module.Reader.Mechanical_law_reader import glob
 
 #from MekAnos.Material_assignment.module.Converters.ModifyMechanicalLaw import create_new_mekamesh_from_mekamesh
 
+from Interface.CustomClasses import CustomQToolButton
+
 
 class Mekamesh_tab(QWidget):
     def __init__(self, parent):
         super(Mekamesh_tab, self).__init__(parent)
 
         self.parent = parent
-        self.main_layout = QVBoxLayout()
+        self.main_layout = QGridLayout()
         self.setLayout(self.main_layout)
 
         self.create_material_widget()
+        self.create_constitutive_law_groupbox()
+        self.create_analysis_groupbox()
         self.mechanical_laws_widget = MechanicalLawsWidget(self)
 
-        self.generate_mekameshes_button = QPushButton('Create Mekameshes')
-        self.generate_mekameshes_button.setDisabled(True)
-        #self.generate_mekameshes_button.clicked.connect(self.create_mekameshes)
+        self.add_mekameshes_to_queue_button = QPushButton('Add Mekameshes to queue')
+        self.add_mekameshes_to_queue_button.setDisabled(True)
+        self.add_mekameshes_to_queue_button.clicked.connect(self.add_mekameshes_to_queue)
 
-        self.main_layout.addWidget(self.material_widget)
-        self.main_layout.addWidget(self.mechanical_laws_widget)
-        self.main_layout.addWidget(self.generate_mekameshes_button)
+        self.add_analysis_to_queue_button = QPushButton('Add Analysis to queue')
+        self.add_analysis_to_queue_button.setDisabled(True)
+        self.add_analysis_to_queue_button.clicked.connect(self.add_analysis_to_queue)
+
+        self.main_layout.addWidget(self.material_groupbox, 0, 0)
+        self.main_layout.addWidget(self.constitutive_law_groupbox, 0, 1)
+        self.main_layout.addWidget(self.mechanical_laws_widget, 1, 0)
+        self.main_layout.addWidget(self.mekamesh_analysis_groupbox, 1, 1)
+        self.main_layout.addWidget(self.add_mekameshes_to_queue_button, 2, 0, 1, 2)
+        self.main_layout.addWidget(self.add_analysis_to_queue_button, 3, 0, 1, 2)
 
     def create_material_widget(self):
         # Material widget
-        self.material_widget = QWidget()
+        self.material_groupbox = QGroupBox("Material attribution")
+
         self.material_layout = QVBoxLayout()
-        self.material_widget.setLayout(self.material_layout)
-        self.material_widget.setMaximumHeight(300)
+        self.material_groupbox.setLayout(self.material_layout)
+        self.material_groupbox.setMaximumHeight(300)
+
+        self.material_attribution_widget = QWidget()
+        self.material_attribution_layout = QHBoxLayout()
+        self.material_attribution_widget.setLayout(self.material_attribution_layout)
+        self.material_attribution_label = QLabel('Material attribution type')
+        self.material_attribution_type_combobox = QComboBox()
+        self.material_attribution_type_combobox.addItems(['Material step (MPa)', 'Number of materials'])
+        self.material_attribution_layout.addWidget(self.material_attribution_label)
+        self.material_attribution_layout.addWidget(self.material_attribution_type_combobox)
+        self.material_attribution_layout.addStretch()
+
+        self.materialMinValueWidget = QWidget()
+        self.materialMinValueLayout = QHBoxLayout()
+        self.materialMinValueWidget.setLayout(self.materialMinValueLayout)
+        self.materialMinValueLabel = QLabel('Minimum value of material (MPa) : ')
+        self.materialMinValueEdit = QLineEdit()
+        self.materialMinValueEdit.setMaximumWidth(100)
+        self.materialMinValueEdit.setText('0.01')
+        self.materialMinValueEdit.textChanged.connect(self.textValueChanged)
+        self.materialMinValueLayout.addWidget(self.materialMinValueLabel)
+        self.materialMinValueLayout.addWidget(self.materialMinValueEdit)
+        self.materialMinValueLayout.addStretch()
 
         self.materialStepWidget = QWidget()
         self.materialStepLayout = QHBoxLayout()
         self.materialStepWidget.setLayout(self.materialStepLayout)
-        self.materialStepLabel = QLabel('Number of materials : ')
+        self.material_step_type = 'Material step'
+        self.materialStepLabel = QLabel('Material step (MPa) : ')
         self.materialStepEdit = QLineEdit()
+        self.materialStepEdit.setMaximumWidth(100)
         self.materialStepEdit.setText('100')
         self.materialStepSlider = QSlider(Qt.Horizontal, self)
         self.materialStepSlider.setGeometry(10, 10, 300, 40)
@@ -59,10 +95,13 @@ class Mekamesh_tab(QWidget):
         self.materialStepLayout.addWidget(self.materialStepSlider)
         self.materialStepLayout.addStretch()
 
+        self.material_attribution_type_combobox.currentIndexChanged.connect(self.react_material_step_type)
+        self.material_attribution_type_combobox.setCurrentIndex(0)
+
         self.materialStepApproxWidget = QWidget()
         self.materialStepApproxLayout = QHBoxLayout()
         self.materialStepApproxWidget.setLayout(self.materialStepApproxLayout)
-        self.materialStepApproxLabel = QLabel('Material step approximation = ')
+        self.materialStepApproxLabel = QLabel('Material step approximation : ')
         self.materialStepApproxComboBox = QComboBox()
         self.materialStepApproxComboBox.addItems(['- Choose bound condition -', 'inferior bound', 'middle bound', 'superior bound'])
         self.materialStepApproxComboBox.setCurrentIndex(2)
@@ -70,6 +109,24 @@ class Mekamesh_tab(QWidget):
         self.materialStepApproxLayout.addWidget(self.materialStepApproxLabel)
         self.materialStepApproxLayout.addWidget(self.materialStepApproxComboBox)
         self.materialStepApproxLayout.addStretch()
+
+        self.material_layout.addWidget(self.material_attribution_widget)
+        self.material_layout.addWidget(self.materialMinValueWidget)
+        self.material_layout.addWidget(self.materialStepWidget)
+        self.material_layout.addWidget(self.materialStepApproxWidget)
+
+    def react_material_step_type(self):
+        if self.material_attribution_type_combobox.currentIndex() == 0:
+            self.material_step_type = 'Material step'
+            self.materialStepLabel.setText('Material step (MPa) : ')
+        elif self.material_attribution_type_combobox.currentIndex() == 1:
+            self.material_step_type = 'Material number'
+            self.materialStepLabel.setText('Number of materials : ')
+
+    def create_constitutive_law_groupbox(self):
+        self.constitutive_law_groupbox = QGroupBox('Constitutive law')
+        self.constitutive_law_layout = QVBoxLayout()
+        self.constitutive_law_groupbox.setLayout(self.constitutive_law_layout)
 
         self.materialSymmetryWidget = QWidget()
         self.materialSymmetryLayout = QHBoxLayout()
@@ -106,11 +163,22 @@ class Mekamesh_tab(QWidget):
         self.plasticModelLayout.addWidget(self.plasticModelComboBox)
         self.plasticModelLayout.addStretch()
 
-        self.material_layout.addWidget(self.materialStepWidget)
-        self.material_layout.addWidget(self.materialStepApproxWidget)
-        self.material_layout.addWidget(self.materialSymmetryWidget)
-        self.material_layout.addWidget(self.elasticModelWidget)
-        self.material_layout.addWidget(self.plasticModelWidget)
+        self.constitutive_law_layout.addWidget(self.materialSymmetryWidget)
+        self.constitutive_law_layout.addWidget(self.elasticModelWidget)
+        self.constitutive_law_layout.addWidget(self.plasticModelWidget)
+
+    def create_analysis_groupbox(self):
+        self.mekamesh_analysis_groupbox = QGroupBox('Mekamesh analysis')
+        self.mekamesh_analysis_layout = QVBoxLayout()
+        self.mekamesh_analysis_groupbox.setLayout(self.mekamesh_analysis_layout)
+
+        self.mekamesh_BMD = QCheckBox('BMD')
+        self.mekamesh_density = QCheckBox('Density')
+        self.mekamesh_modulus = QCheckBox("Young's modulus")
+
+        self.mekamesh_analysis_layout.addWidget(self.mekamesh_BMD)
+        self.mekamesh_analysis_layout.addWidget(self.mekamesh_density)
+        self.mekamesh_analysis_layout.addWidget(self.mekamesh_modulus)
 
     def sliderValueChanged(self, value):
         self.materialStepEdit.setText(str(value))
@@ -128,13 +196,13 @@ class Mekamesh_tab(QWidget):
         or self.elasticModelComboBox.currentIndex() == 0\
         or self.materialSymmetryComboBox.currentIndex() == 0\
         or self.materialStepApproxComboBox.currentIndex() == 0:
-            self.generate_mekameshes_button.setDisabled(True)
+            self.add_mekameshes_to_queue_button.setDisabled(True)
         else:
-            self.generate_mekameshes_button.setDisabled(False)
+            self.add_mekameshes_to_queue_button.setDisabled(False)
         try:
             self.materialStep = int(self.materialStepEdit.text())
         except ValueError:
-            self.generate_mekameshes_button.setDisabled(True)
+            self.add_mekameshes_to_queue_button.setDisabled(True)
 
         if self.materialStepApproxComboBox.currentIndex() == 1:
             self.approximation = 'inf'
@@ -150,7 +218,7 @@ class Mekamesh_tab(QWidget):
 
         if self.elasticModelComboBox.currentIndex() == 2 and self.symmetry == 'orthotropic':
             # clear layoutLaw
-            self.mechanical_laws_table.clear_layout()
+            self.mechanical_laws_widget.clear_layout()
 
             self.addField(1, 6)
             self.addField(2, 6)
@@ -167,7 +235,7 @@ class Mekamesh_tab(QWidget):
 
         elif self.elasticModelComboBox.currentIndex() == 2 and self.symmetry == 'isotropic':
             # clear layoutLaw
-            self.mechanical_laws_table.clear_layout()
+            self.mechanical_laws_widget.clear_layout()
 
             self.addField(1, 5)
             self.addField(4, 3)
@@ -177,14 +245,20 @@ class Mekamesh_tab(QWidget):
 
         elif self.elasticModelComboBox.currentIndex() == 1 and self.symmetry == 'isotropic':
             # clear layoutLaw
-            self.mechanical_laws_table.clear_layout()
+            self.mechanical_laws_widget.clear_layout()
 
             self.addField(1, 2)
             self.addField(4, 2)
             self.config = 'Keller1998-EL-iso'
 
     def addField(self, property_index=None, law_index=None):
-        self.mechanical_laws_table.addField(property_index, law_index)
+        self.mechanical_laws_widget.addField(property_index, law_index)
+
+    def add_mekameshes_to_queue(self):
+        print('add mekameshes to queue')
+
+    def add_analysis_to_queue(self):
+        print('add analysis to queue')
 
     '''def create_mekameshes(self):
         for propertyField in self.propertyFieldList:
@@ -208,21 +282,13 @@ class Mekamesh_tab(QWidget):
         self.close()'''
 
 
-class MechanicalLawsWidget(QWidget):
+class MechanicalLawsWidget(QGroupBox):
     def __init__(self, parent=None):
         self.parent = parent
 
         super(MechanicalLawsWidget, self).__init__(self.parent)
 
-        self.mechanicalHeaderWidget = QWidget()
-        self.mechanicalHeaderLayout = QHBoxLayout()
-        self.mechanicalHeaderWidget.setLayout(self.mechanicalHeaderLayout)
-        self.mechanicalHeaderTitle = QLabel("Mechanical laws")  # label for Header
-        self.mechanicalHeaderLayout.addWidget(self.mechanicalHeaderTitle)
-        self.addFieldButton = CustomQToolButton('Add law', r'Images/add 2.svg', 10)
-        self.addFieldButton.clicked.connect(self.addField)
-        self.mechanicalHeaderLayout.addWidget(self.addFieldButton)
-        self.mechanicalHeaderLayout.addStretch()
+        self.setTitle('Density to mechanical properties relationships')
 
         self.mechanicalLawList = []
         self.chosenPropertyListIndex = set({})
@@ -236,6 +302,8 @@ class MechanicalLawsWidget(QWidget):
         self.mechanical_table.setLayout(self.layoutlaw)
         self.layoutlaw.addStretch()
         self.addField()
+        self.add_field_button = AddFieldButton(self)
+        self.layoutlaw.addWidget(self.add_field_button)
 
         self.scroll = QScrollArea()
         self.scroll.setWidget(self.mechanical_table)
@@ -245,7 +313,6 @@ class MechanicalLawsWidget(QWidget):
         self.scroll.setMinimumWidth(600)
 
         self.main_layout = QVBoxLayout()
-        self.main_layout.addWidget(self.mechanicalHeaderWidget)
         self.main_layout.addWidget(self.scroll)
         self.main_layout.addStretch()
         self.setLayout(self.main_layout)
@@ -258,6 +325,8 @@ class MechanicalLawsWidget(QWidget):
                 self.layoutlaw.itemAt(i).widget().setParent(None)
             except AttributeError:
                 pass
+        self.add_field_button = AddFieldButton(self)
+        self.layoutlaw.addWidget(self.add_field_button)
 
     def addField(self, property_index=None, law_index=None):
         index = len(self.propertyFieldList)
@@ -291,7 +360,19 @@ class MechanicalLawsWidget(QWidget):
         for i in range(len(self.propertyFieldList)):
             self.propertyFieldList[i].update_index(i)
 
+class AddFieldButton(QWidget):
+    def __init__(self, parent):
+        super(AddFieldButton, self).__init__(parent)
+        self.parent = parent
 
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+        self.title = QLabel("Add relationship")
+        self.layout.addWidget(self.title)
+        self.addFieldButton = CustomQToolButton(None, r'Images/add 2.svg', 16)
+        self.addFieldButton.clicked.connect(self.parent.addField)
+        self.layout.addWidget(self.addFieldButton)
+        self.layout.addStretch()
 
 class PropertyField(QWidget):
     def __init__(self, parent, index, property_index=None, law_index=None):
@@ -300,7 +381,7 @@ class PropertyField(QWidget):
         self.parent = parent
         self.index = index
 
-        self.setStyleSheet('QWidget{font-size:11pt;}')
+        #self.setStyleSheet('QWidget{font-size:11pt;}')
         self.setMaximumHeight(65)
 
         self.propertyList = self.parent.get_property_list()
@@ -503,19 +584,3 @@ class PropertyField(QWidget):
     def create_new_law(self):
         pass
 
-
-class CustomQToolButton(QToolButton):
-    def __init__(self, text, icon_path, size=60, parent=None):
-        super(CustomQToolButton, self).__init__(parent)
-
-        self.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-        self.setStyleSheet('QToolButton{border: none;}')
-        self.setIcon(QIcon(icon_path))
-        self.setIconSize(QSize(size, size))
-        if text:
-            self.setText(text)
-            self.setFixedWidth(size*5/3)
-            self.setFixedHeight(size*5/3)
-
-        else:
-            self.setFixedHeight(size*5/3)

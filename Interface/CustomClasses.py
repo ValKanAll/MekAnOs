@@ -44,3 +44,20 @@ class CustomQTreeWidgetItem(QTreeWidgetItem):
                 treewidget.itemChecked.emit(self, column)
 
 CustomQTreeWidgetItem()
+
+
+class CustomQToolButton(QToolButton):
+    def __init__(self, text, icon_path, size=60, parent=None):
+        super(CustomQToolButton, self).__init__(parent)
+
+        self.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        #self.setStyleSheet('QToolButton{border: none;}')
+        self.setIcon(QIcon(icon_path))
+        self.setIconSize(QSize(size, size))
+        if text:
+            self.setText(text)
+            self.setFixedWidth(size*5/3)
+            self.setFixedHeight(size*5/3)
+
+        else:
+            self.setFixedHeight(size*5/3)

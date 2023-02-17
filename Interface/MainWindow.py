@@ -8,6 +8,7 @@ from MekAnos.Interface.QueueManagement.QueueManagement import QueueManagementWin
 from MekAnos.Interface.WorkflowLauncher.WorkflowLauncherWindow import WorkflowLauncherWindow
 from MekAnos.Interface.FileVisioner.FileVisioner import FileVisionerWindow
 from Interface.ResultAnalyser.ResultsAnalyser import ResultsAnalyserWindow
+from Interface.CustomClasses import CustomQToolButton
 
 __version__ = '1.0'
 
@@ -41,19 +42,19 @@ class MainWindow(QMainWindow):
         # check pyqt5 version stability, the used for Mekabone
 
         # Workflow launcher
-        self.WLButton = QPushButton('Workflow launcher')
+        self.WLButton = CustomQToolButton('Workflow launcher', r'Images/workflow.png', 150)
         self.WLButton.clicked.connect(self.open_WL)
 
         # Queue management
-        self.QMButton = QPushButton('Queue management')
+        self.QMButton = CustomQToolButton('Queue management', r'Images/waiting_list.png', 150)
         self.QMButton.clicked.connect(self.open_QM) # it could be nice to launch a new and independent thread not depending from the main application
 
         # File visioner
-        self.FVButton = QPushButton('File visionner')
+        self.FVButton = CustomQToolButton('File visionner', r'Images/eye-blue.svg', 150)
         self.FVButton.clicked.connect(self.open_FV)
 
         # Results analyser (with autoplot and saving,  possibility to choose between pyplot and matplotlib)
-        self.RAButton = QPushButton('Results analyser')
+        self.RAButton = CustomQToolButton('Results analyser', r'Images/poll.svg', 150)
         self.RAButton.clicked.connect(self.open_RA)
 
         self.mainLayout.addWidget(self.WLButton, 0, 0)
