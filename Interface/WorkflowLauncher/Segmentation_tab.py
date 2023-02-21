@@ -30,15 +30,16 @@ class SegmentationTab(QWidget):
 
         self.layout.addWidget(self.segTree)
 
-    def get_selected_samples(self):
-        for dataset_tree_item in self.datasetTree.dataset_tree_item_list:
-            dataset = dataset_tree_item.dataset
-            for sample_tree in dataset_tree_item.samples_tree_list:
-                if sample_tree.checkState(0) == Qt.Checked:
-                    dataset.chosen_sample_ID_list[sample_tree.index_sample] = True
-                elif sample_tree.checkState(0) == Qt.Unchecked:
-                    dataset.chosen_sample_ID_list[sample_tree.index_sample] = False
-            print(dataset.name, dataset.chosen_sample_ID_list)
+    def get_selected_segmentations(self):
+        for dataset_tree in self.segTree.dataset_tree_list:
+            dataset = dataset_tree.dataset
+            chosen_segmentation_list = dataset.get_chosen_segmentation_list()
+            for scan_tree in dataset_tree.scan_tree_list:
+                scan_name = scan_tree.scan_name
+                for seg_item_tree in scan_tree.seg_item_tree_list:
+                    seg_name = seg_item_tree.seg_name
+                    if seg_item_tree.is_checked():
+                        chosen_segmentation_list.append(scan_name + '_' + seg_name)
 
 
 class SegmentationTree(CustomQTreeWidget):
@@ -58,6 +59,7 @@ class SegmentationTree(CustomQTreeWidget):
     def fill(self):
         self.filled = False
         self.clear()
+        self.dataset_tree_list = []
         for dataset in self.parent.datasets:
             count = 0
             for chosen in dataset.chosen_sample_ID_list:
@@ -67,6 +69,7 @@ class SegmentationTree(CustomQTreeWidget):
                 continue
             item_dataset = DatasetQTreeWidgetItem(self, dataset, count)
             item_dataset.setExpanded(True)
+            self.dataset_tree_list.append(item_dataset)
             '''index = 0
             for scan in dataset.scans_list:
                 item_scan = QTreeWidgetItem(item_dataset)
@@ -100,8 +103,9 @@ class DatasetQTreeWidgetItem(CustomQTreeWidgetItem):
         self.setExpanded(True)
 
         self.index = index
+        self.name = self.dataset.get_name()
         #self.obj = self.object_list[self.index]
-        self.setText(0, self.dataset.get_name())
+        self.setText(0, self.name)
 
         #self.setFlags(self.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
         self.scan_tree_list = []
@@ -122,6 +126,7 @@ class ScanQTreeWidgetItem(CustomQTreeWidgetItem):
     def __init__(self, parent, scan_infos, seg_list, index_scan):
         self.parent = parent
         self.scan_infos = scan_infos
+        self.scan_name = scan_infos
         self.index_scan = index_scan
         self.seg_list = seg_list
         self.parent_tree = self.parent.parent
@@ -147,6 +152,7 @@ class SegQTreeWidgetItem(CustomQTreeWidgetItem):
     def __init__(self, parent, seg, index_seg):
         self.parent = parent
         self.seg_infos = seg
+        self.seg_name = seg
         self.index_seg = index_seg
         self.parent_tree = self.parent.parent.parent
         super(SegQTreeWidgetItem, self).__init__(self.parent)
@@ -156,6 +162,12 @@ class SegQTreeWidgetItem(CustomQTreeWidgetItem):
 
 
         self.setText(3, str(self.seg_infos))
+
+    def is_checked(self):
+        if self.checkState(3) == 2:
+            return True
+        else:
+            return False
 
     def uncheck(self):
         print(self.seg_infos)

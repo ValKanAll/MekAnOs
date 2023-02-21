@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QToolButton, QVBoxLayout, QWidget)
 from PyQt5.QtGui import QIcon, QFont
 
+from Interface.QueueManagement.Waiting_list import Waiting_list
+
 import sys
 
 __version__ = '1.0'
@@ -33,6 +35,12 @@ class QueueManagementWindow(QDialog):
         self.mainLayout.setSpacing(0)
         self.mainLayout.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setLayout(self.mainLayout)
+
+        WL = Waiting_list()
+        _text = WL.safe_read()
+
+        self.label = QLabel(_text)
+        self.mainLayout.addWidget(self.label)
 
 
 

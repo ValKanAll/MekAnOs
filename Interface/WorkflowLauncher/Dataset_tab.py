@@ -84,7 +84,7 @@ class DatasetQTreeWidgetItem(QTreeWidgetItem):
         self.parent = parent
         self.dataset = dataset
         super(DatasetQTreeWidgetItem, self).__init__(self.parent)
-        self.setExpanded(True)
+        self.setExpanded(False)
 
         self.index = index
         #self.obj = self.object_list[self.index]

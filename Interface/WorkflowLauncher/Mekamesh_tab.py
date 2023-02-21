@@ -16,6 +16,8 @@ from MekAnos.Material_assignment.module.Reader.Mechanical_law_reader import glob
 
 from Interface.CustomClasses import CustomQToolButton
 
+from Interface.QueueManagement.Waiting_list import Waiting_list
+
 
 class Mekamesh_tab(QWidget):
     def __init__(self, parent):
@@ -103,8 +105,8 @@ class Mekamesh_tab(QWidget):
         self.materialStepApproxWidget.setLayout(self.materialStepApproxLayout)
         self.materialStepApproxLabel = QLabel('Material step approximation : ')
         self.materialStepApproxComboBox = QComboBox()
-        self.materialStepApproxComboBox.addItems(['- Choose bound condition -', 'inferior bound', 'middle bound', 'superior bound'])
-        self.materialStepApproxComboBox.setCurrentIndex(2)
+        self.materialStepApproxComboBox.addItems(['inferior bound', 'middle bound', 'superior bound'])
+        self.materialStepApproxComboBox.setCurrentIndex(1)
         self.materialStepApproxComboBox.currentIndexChanged.connect(self.tab_reaction)
         self.materialStepApproxLayout.addWidget(self.materialStepApproxLabel)
         self.materialStepApproxLayout.addWidget(self.materialStepApproxComboBox)
@@ -255,7 +257,30 @@ class Mekamesh_tab(QWidget):
         self.mechanical_laws_widget.addField(property_index, law_index)
 
     def add_mekameshes_to_queue(self):
-        print('add mekameshes to queue')
+        self.parent.get_selected_seg()
+        if self.material_attribution_type_combobox.currentIndex() == 0:
+            self.material_attribution_type = 'material_step'
+        elif self.material_attribution_type_combobox.currentIndex() == 1:
+            self.material_attribution_type = 'material_number'
+        self.min_value = self.materialMinValueEdit.text()
+        self.material_step = self.materialStepEdit.text()
+
+        if self.materialStepApproxComboBox.currentIndex() == 0:
+            self.material_step_approx = 'inf'
+        elif self.materialStepApproxComboBox.currentIndex() == 1:
+            self.material_step_approx = 'mid'
+        elif self.materialStepApproxComboBox.currentIndex() == 2:
+            self.material_step_approx = 'sup'
+
+        self.mechanicalLawList = self.mechanical_laws_widget.get_mechanical_law_list()
+        self.datasets = self.parent.datasets
+        WL = Waiting_list()
+        WL.add_mekameshing(datasets=self.datasets, meshes=self.parent.get_meshes(),
+                             material_step_type=self.material_attribution_type,
+                                                  material_step=self.material_step, min_value=self.min_value,
+                           mechanical_law_list=self.mechanicalLawList)
+
+        print('added mekameshes to queue')
 
     def add_analysis_to_queue(self):
         print('add analysis to queue')
@@ -317,7 +342,6 @@ class MechanicalLawsWidget(QGroupBox):
         self.main_layout.addStretch()
         self.setLayout(self.main_layout)
 
-
     def clear_layout(self):
         self.propertyFieldList = []
         for i in reversed(range(self.layoutlaw.count())):
@@ -345,6 +369,12 @@ class MechanicalLawsWidget(QGroupBox):
         return self.chosenPropertyListIndex
 
     def get_mechanical_law_list(self):
+        self.mechanicalLawList = []
+
+        for propertyField in self.propertyFieldList:
+            if propertyField.get_chosen_law():
+                self.mechanicalLawList.append(propertyField.get_chosen_law())
+
         return self.mechanicalLawList
 
     def update_properties(self, index):
@@ -360,6 +390,7 @@ class MechanicalLawsWidget(QGroupBox):
         for i in range(len(self.propertyFieldList)):
             self.propertyFieldList[i].update_index(i)
 
+
 class AddFieldButton(QWidget):
     def __init__(self, parent):
         super(AddFieldButton, self).__init__(parent)
@@ -373,6 +404,7 @@ class AddFieldButton(QWidget):
         self.addFieldButton.clicked.connect(self.parent.addField)
         self.layout.addWidget(self.addFieldButton)
         self.layout.addStretch()
+
 
 class PropertyField(QWidget):
     def __init__(self, parent, index, property_index=None, law_index=None):

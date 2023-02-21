@@ -57,6 +57,11 @@ class Dataset:
         for sample_ID in self.sample_ID_list:
             self.chosen_sample_ID_list.append(True)
 
+        self.chosen_segmentation_list = []
+
+    def get_chosen_segmentation_list(self):
+        return self.chosen_segmentation_list
+
     def get_chosen_sample_ID_list(self):
         return self.chosen_sample_ID_list
 

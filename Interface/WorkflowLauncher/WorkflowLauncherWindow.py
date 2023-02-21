@@ -93,15 +93,31 @@ class WorkflowLauncherWindow(QDialog):
         self.last_tab_index = 0
         self.tab_creator.setCurrentIndex(0)
 
+    def get_meshes(self):
+        try:
+            self.meshes = self.mesh_tab.get_meshes()
+        except AttributeError:
+            self.meshes = []
+        if self.meshes == []:
+            self.tab_creator.setTabEnabled(3, False)
+            self.tab_creator.setTabEnabled(4, False)
+            self.tab_creator.setTabEnabled(5, False)
+        else:
+            self.tab_creator.setTabEnabled(3, True)
+        return self.meshes
+
+    def get_selected_seg(self):
+        self.selected_seg = self.segmentationTab.get_selected_segmentations()
+
     def current_tab_changed(self):
+        self.meshes = self.get_meshes()
 
         if self.tab_creator.currentIndex() != 0:
             self.datasetTab.get_selected_samples()
             self.datasets = self.datasetTab.datasetTree.datasets
         if self.tab_creator.currentIndex() >= 1 and self.last_tab_index == 0:
             self.fill_segmentation_tab()
-        if self.tab_creator.currentIndex() >= 2 and self.last_tab_index == 1:
-            self.fill_mesh_tab()
+
 
         self.last_tab_index = self.tab_creator.currentIndex()
 
@@ -145,15 +161,15 @@ class WorkflowLauncherWindow(QDialog):
 
     def fill_tree_dataset(self):
         self.datasetTab.datasetTree.fill()
+        self.datasets = self.datasetTab.datasetTree.datasets
 
         for i in range(7):
             self.tab_creator.setTabEnabled(i, True)
+        self.get_meshes()
 
     def fill_segmentation_tab(self):
         self.segmentationTab.segTree.fill()
 
-    def fill_mesh_tab(self):
-        pass
 
 
 

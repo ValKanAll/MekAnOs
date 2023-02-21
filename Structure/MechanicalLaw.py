@@ -12,6 +12,9 @@ class MechanicalLaw:
         self.c = c
         self.min_value = min_value
 
+    def __str__(self):
+        return('[name={}, prop={}, a={}, b={}, c={}, min={}]'.format(self.law_name, self.law_property, self.a, self.b, self.c, self.min_value))
+
     def get_law_name(self):
         return self.law_name
 
