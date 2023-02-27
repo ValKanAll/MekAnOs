@@ -198,13 +198,13 @@ class Mekamesh_tab(QWidget):
         or self.elasticModelComboBox.currentIndex() == 0\
         or self.materialSymmetryComboBox.currentIndex() == 0\
         or self.materialStepApproxComboBox.currentIndex() == 0:
-            self.add_mekameshes_to_queue_button.setDisabled(True)
+            self.add_constitutive_laws_to_queue_button.setDisabled(True)
         else:
-            self.add_mekameshes_to_queue_button.setDisabled(False)
+            self.add_constitutive_laws_to_queue_button.setDisabled(False)
         try:
             self.materialStep = int(self.materialStepEdit.text())
         except ValueError:
-            self.add_mekameshes_to_queue_button.setDisabled(True)
+            self.add_constitutive_laws_to_queue_button.setDisabled(True)
 
         if self.materialStepApproxComboBox.currentIndex() == 1:
             self.approximation = 'inf'
@@ -275,7 +275,7 @@ class Mekamesh_tab(QWidget):
         self.mechanicalLawList = self.mechanical_laws_widget.get_mechanical_law_list()
         self.datasets = self.parent.datasets
         WL = Waiting_list()
-        WL.add_mekameshing(datasets=self.datasets, meshes=self.parent.get_meshes(),
+        WL.add_laws_attribution(datasets=self.datasets, meshes=self.parent.get_meshes(),
                              material_step_type=self.material_attribution_type,
                                                   material_step=self.material_step, min_value=self.min_value,
                            mechanical_law_list=self.mechanicalLawList)
