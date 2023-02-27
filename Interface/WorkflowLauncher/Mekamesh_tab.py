@@ -32,9 +32,13 @@ class Mekamesh_tab(QWidget):
         self.create_analysis_groupbox()
         self.mechanical_laws_widget = MechanicalLawsWidget(self)
 
-        self.add_mekameshes_to_queue_button = QPushButton('Add Mekameshes to queue')
-        self.add_mekameshes_to_queue_button.setDisabled(True)
-        self.add_mekameshes_to_queue_button.clicked.connect(self.add_mekameshes_to_queue)
+        self.add_mat_attrib_to_queue_button = QPushButton('Add Material attribution to queue (QCTMA)')
+        self.add_mat_attrib_to_queue_button.setDisabled(True)
+        self.add_mat_attrib_to_queue_button.clicked.connect(self.add_analysis_to_queue)
+
+        self.add_constitutive_laws_to_queue_button = QPushButton('Add Constitutive laws to queue')
+        self.add_constitutive_laws_to_queue_button.setDisabled(True)
+        self.add_constitutive_laws_to_queue_button.clicked.connect(self.add_mekameshes_to_queue)
 
         self.add_analysis_to_queue_button = QPushButton('Add Analysis to queue')
         self.add_analysis_to_queue_button.setDisabled(True)
@@ -44,8 +48,9 @@ class Mekamesh_tab(QWidget):
         self.main_layout.addWidget(self.constitutive_law_groupbox, 0, 1)
         self.main_layout.addWidget(self.mechanical_laws_widget, 1, 0)
         self.main_layout.addWidget(self.mekamesh_analysis_groupbox, 1, 1)
-        self.main_layout.addWidget(self.add_mekameshes_to_queue_button, 2, 0, 1, 2)
-        self.main_layout.addWidget(self.add_analysis_to_queue_button, 3, 0, 1, 2)
+        self.main_layout.addWidget(self.add_mat_attrib_to_queue_button, 2, 0, 1, 2)
+        self.main_layout.addWidget(self.add_constitutive_laws_to_queue_button, 3, 0, 1, 2)
+        self.main_layout.addWidget(self.add_analysis_to_queue_button, 4, 0, 1, 2)
 
     def create_material_widget(self):
         # Material widget
