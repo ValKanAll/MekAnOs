@@ -28,7 +28,11 @@ class QueueManagementWindow(QDialog):
         self.setStyleSheet('QGroupBox{font-size: 11pt;}'
                            'QGroupBox::title{color: #003066;}')
 
-        self.setMinimumSize(600, 600)
+        self.setMinimumSize(1200, 800)
+
+        self.properties = ['Time', 'Action', 'Dataset', 'Sample', 'Segmentation', 'Mesh',
+                                                  'Mesh analysis', 'Material step (MPa)', 'Min value material (MPa)',
+                                                  'Constitutive laws', 'Mekamesh analysis']
 
 
         # main layout
@@ -41,10 +45,10 @@ class QueueManagementWindow(QDialog):
         self.mainLayout.addWidget(self.tab_widget)
 
         self.create_tables()
-        #self.create_filter_tab()
+        self.create_filter_tab()
 
         self.tab_widget.addTab(self.all_tab_widget, 'Waiting list')
-        #self.tab_widget.addTab(self.filter_widget, 'Filter')
+        self.tab_widget.addTab(self.filter_widget, 'Filter')
         self.tab_widget.addTab(self.in_progress_tab_widget, 'In progress')
 
         self.fill_table(self.all_table)
@@ -60,9 +64,61 @@ class QueueManagementWindow(QDialog):
         self.filter_layout = QVBoxLayout()
         self.filter_widget.setLayout(self.filter_layout)
 
+        self.filter_button = QPushButton('Filter')
+        self.filter_layout.addWidget(self.filter_button)
+        self.filter_button.clicked.connect(self.filter)
+
         self.filter_scroll = QScrollArea(self)
+        self.filter_scroll_widget = QWidget()
         self.filter_scroll_layout = QVBoxLayout()
-        self.filter_scroll.setLayout(self.filter_scroll_layout)
+        self.filter_scroll_widget.setLayout(self.filter_scroll_layout)
+        self.filter_scroll.setWidget(self.filter_scroll_widget)
+
+        self.filter_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.filter_scroll.setWidgetResizable(True)
+        self.filter_scroll.setMinimumHeight(200)
+        self.filter_scroll.setMinimumWidth(600)
+
+        self.filter_layout.addWidget(self.filter_scroll)
+
+        self.filterFieldList = []
+
+        self.addField()
+
+        self.filter_scroll_layout.addStretch()
+
+        self.addFieldButton = CustomQToolButton(None, r'Images/add 2.svg', 16)
+        self.addFieldButton.clicked.connect(self.addField)
+        self.filter_scroll_layout.addWidget(self.addFieldButton)
+
+    def filter(self):
+        self.criteriaList = []
+        for filter_field in self.filterFieldList:
+            self.criteriaList.append(filter_field.get_criteria())
+
+        def global_criteria(action):
+            for criteria in self.criteriaList:
+                if not criteria(action):
+                    return False
+            else:
+                return True
+        if self.criteriaList == []:
+            self.fill_table(self.all_table)
+        else:
+            self.fill_table(self.all_table, global_criteria)
+
+    def addField(self):
+        index = len(self.filterFieldList)
+        new_field = FilterField(self, index)
+        # add a new field for choosing a mechanical property
+        self.filter_scroll_layout.insertWidget(index, new_field)
+        self.filterFieldList.append(new_field)
+
+    def remove_field(self, index):
+        self.filterFieldList.pop(index)
+        self.filter_scroll_layout.itemAt(index).widget().deleteLater()
+        for i in range(len(self.filterFieldList)):
+            self.filterFieldList[i].update_index(i)
 
     def create_tables(self):
         self.all_tab_widget = QWidget()
@@ -70,9 +126,7 @@ class QueueManagementWindow(QDialog):
         self.all_tab_widget.setLayout(self.all_tab_layout)
         self.all_table = QTableWidget()
         self.all_table.setColumnCount(15)
-        self.all_table.setHorizontalHeaderLabels(['Time', 'Action', 'Dataset', 'Sample', 'Segmentation', 'Mesh',
-                                                  'Mesh analysis', 'Material step (MPa)', 'Min value material (MPa)',
-                                                  'Constitutive laws', 'Mekamesh analysis'])
+        self.all_table.setHorizontalHeaderLabels(self.properties)
         self.all_table.setColumnWidth(0, 150)
         self.all_table.setColumnWidth(1, 100)
         self.all_table.setColumnWidth(2, 150)
@@ -92,9 +146,7 @@ class QueueManagementWindow(QDialog):
         self.in_progress_tab_widget.setLayout(self.in_progress_tab_layout)
         self.in_progress_table = QTableWidget()
         self.in_progress_table.setColumnCount(15)
-        self.in_progress_table.setHorizontalHeaderLabels(['Time', 'Action', 'Dataset', 'Sample', 'Segmentation', 'Mesh',
-                                                  'Mesh analysis', 'Material step (MPa)', 'Min value material (MPa)',
-                                                  'Constitutive laws', 'Mekamesh analysis'])
+        self.in_progress_table.setHorizontalHeaderLabels(self.properties)
         self.in_progress_table.setColumnWidth(0, 150)
         self.in_progress_table.setColumnWidth(1, 100)
         self.in_progress_table.setColumnWidth(2, 150)
@@ -143,56 +195,36 @@ class FilterField(QWidget):
         self.setStyleSheet('QWidget{font-size:10pt;}')
         self.setMaximumHeight(65)
 
-        self.propertyList = self.parent.get_property_list()
-        self.chosenIndexList = self.parent.get_chosen_property_list()
+        self.filterList = self.parent.filterFieldList
 
-        # Label
-        self.labelWidget = QWidget()
-        self.labelLayout = QHBoxLayout()
-        self.labelLayout.setContentsMargins(QMargins(0, 0, 0, 0))
-        self.labelWidget.setLayout(self.labelLayout)
+        # Remove button
+
         self.removeButton = CustomQToolButton('', r'Images/remove.svg', 16)
         self.removeButton.clicked.connect(self.remove_field)
-        self.labelLayout.addWidget(self.removeButton)
-        self.labelLayout.addStretch()
+
         # Choose property
-        self.firstComboWidget = QWidget()
-        self.firstComboLayout = QVBoxLayout()
         self.comboBoxProperty = QComboBox()
         self.comboBoxProperty.addItem('- Choose a property -')
-        self.comboBoxProperty.addItems(self.propertyList)
+        self.comboBoxProperty.addItems(self.parent.properties)
         self.comboBoxProperty.currentIndexChanged.connect(self.property_changed)
-        self.currentIndexChosen = 0
-        self.comboBoxProperty.setCurrentIndex(0)
-        self.firstComboWidget.setLayout(self.firstComboLayout)
-        self.firstComboLayout.addWidget(self.comboBoxProperty)
-        self.firstComboLayout.addStretch()
         # Choose law
         self.comboBoxOperation = QComboBox()
-        self.comboBoxOperation.currentIndexChanged.connect(self.operation_changed)
         self.comboBoxOperation.setDisabled(True)
 
         # add to layout
         # widget for value
-        self.widgetValue = QWidget()
-        self.layoutValue = QHBoxLayout()
-        self.layoutValue.setSpacing(0)
-        self.layoutValue.setContentsMargins(QMargins(0, 0, 0, 0))
-        self.widgetValue.setLayout(self.layoutValue)
-
         self.labelValue = QLineEdit()
         self.labelValue.setPlaceholderText('enter value')
-        self.labelValue.textChanged.connect(self.value_changed)
-
-        self.layoutValue.addWidget(self.labelValue)
+        self.labelValue.setDisabled(True)
 
         # widget for choosing
         self.layout = QHBoxLayout()
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(QMargins(0, 0, 0, 0))
-        self.layout.addWidget(self.labelWidget)
-        self.layout.addWidget(self.firstComboWidget)
-        self.layout.addWidget(self.widgetValue)
+        self.layout.addWidget(self.removeButton)
+        self.layout.addWidget(self.comboBoxProperty)
+        self.layout.addWidget(self.comboBoxOperation)
+        self.layout.addWidget(self.labelValue)
         self.setLayout(self.layout)
         self.layout.addStretch()
 
@@ -202,71 +234,72 @@ class FilterField(QWidget):
 
     def property_changed(self):
         self.comboBoxOperation.setCurrentIndex(0)
-        self.currentIndexChosen = self.comboBoxProperty.currentIndex()
-        if self.currentIndexChosen != 0:
-            self.chosenProperty = self.comboBoxProperty.itemText(self.currentIndexChosen)
+        self.currentPropertyIndexChosen = self.comboBoxProperty.currentIndex()
+        self.chosenProperty = self.comboBoxProperty.itemText(self.currentPropertyIndexChosen)
+        if self.currentPropertyIndexChosen != 0:
             self.comboBoxOperation.setDisabled(False)
-            if self.chosenProperty in ['']:
+            self.labelValue.setDisabled(False)
+            if self.currentPropertyIndexChosen in [1]:
                 self.comboBoxOperation.clear()
-                self.comboBoxOperation.addItems(['contains', '='])
-            if self.chosenProperty in ['']:
+                self.comboBoxOperation.addItems(['contains', '=', '<', '>', '<=', '>='])
+            if self.currentPropertyIndexChosen in [8, 9]:
                 self.comboBoxOperation.clear()
                 self.comboBoxOperation.addItems(['=', '<', '>', '<=', '>='])
+            else:
+                self.comboBoxOperation.clear()
+                self.comboBoxOperation.addItems(['contains', '='])
 
         else:
             self.comboBoxOperation.setDisabled(True)
-        self.parent.update_properties(self.index)
-
-    def value_changed(self):
-        # get chosen law
-        lawIndex = self.comboBoxLaw.currentIndex()
-        if lawIndex > 0:
-            self.labelLawPropertyName.setText(self.chosenProperty)
-            if lawIndex > 1:
-                self.newLawButton.hide()
-                self.chosenLawName = self.comboBoxLaw.itemText(lawIndex)
-                # show law
-                self.widgetLawCreation.show()
-                for law in self.law_list:
-                    if law.get_law_name() == self.chosenLawName:
-                        self.chosenLaw = law
-                        self.a, self.b, self.c = self.chosenLaw.get_coefficients()
-                        self.labelLawCoeff_a.setText(str(self.a))
-                        self.labelLawCoeff_b.setText(str(self.b))
-                        self.labelLawCoeff_c.setText(str(self.c))
-                        self.labelLawCoeff_a.setDisabled(True)
-                        self.labelLawCoeff_b.setDisabled(True)
-                        self.labelLawCoeff_c.setDisabled(True)
-
-            if lawIndex == 1:
-                self.labelLawCoeff_a.setDisabled(False)
-                self.labelLawCoeff_b.setDisabled(False)
-                self.labelLawCoeff_c.setDisabled(False)
-                self.newLawButton.show()
-                self.newLawButton.setDisabled(False)
-                self.widgetLawCreation.show()
-
-        else:
-            self.labelLawCoeff_a.setDisabled(True)
-            self.labelLawCoeff_b.setDisabled(True)
-            self.labelLawCoeff_c.setDisabled(True)
-            self.newLawButton.hide()
-            self.widgetLawCreation.show()
-            self.chosenLaw = None
-
-    def update(self):
-        for i in range(len(self.propertyList)-1):
-            if i in self.chosenIndexList and i != self.currentIndexChosen:
-                self.comboBoxProperty.model().item(i).setEnabled(False)
-            else:
-                self.comboBoxProperty.model().item(i).setEnabled(True)
 
     def update_index(self, new_index):
         self.index = new_index
-        #self.lineTitle.setText('Mechanical Law {}'.format(self.index + 1))
 
-    def get_chosen_law(self):
-        return self.chosenLaw
+    def get_criteria(self):
+        self.currentPropertyIndexChosen = self.comboBoxProperty.currentIndex()
+        self.chosenProperty = self.comboBoxProperty.itemText(self.currentPropertyIndexChosen)
+
+        self.currentOperationIndexChosen = self.comboBoxOperation.currentIndex()
+        self.chosenOperation = self.comboBoxOperation.itemText(self.currentOperationIndexChosen)
+
+        self.chosenValue = self.labelValue.text()
+
+        def criteria(action):
+            if self.chosenOperation == 'contains':
+                if self.chosenValue in action[self.currentPropertyIndexChosen-1]:
+                    return True
+                else:
+                    return False
+            elif self.chosenOperation == '=':
+                if self.chosenValue == action[self.currentPropertyIndexChosen-1]:
+                    return True
+                else:
+                    return False
+            elif self.chosenOperation == '<':
+                if self.chosenValue < action[self.currentPropertyIndexChosen-1]:
+                    return True
+                else:
+                    return False
+
+            elif self.chosenOperation == '<=':
+                if self.chosenValue <= action[self.currentPropertyIndexChosen-1]:
+                    return True
+                else:
+                    return False
+
+            elif self.chosenOperation == '>':
+                if self.chosenValue > action[self.currentPropertyIndexChosen-1]:
+                    return True
+                else:
+                    return False
+
+            elif self.chosenOperation == '>=':
+                if self.chosenValue >= action[self.currentPropertyIndexChosen-1]:
+                    return True
+                else:
+                    return False
+
+        return criteria
 
     def create_new_law(self):
         pass
