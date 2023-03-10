@@ -1,4 +1,4 @@
-from MekAnos.Structure.MechanicalLaw import MechanicalLaw
+from Structure.MechanicalLaw import MechanicalLaw
 
 
 global_list_EX = []
