@@ -88,6 +88,368 @@ cmd.Input = "cdwrite, db, '%s', cdb" % mesh_save_path
 # Solve/Export CDB
 ExtAPI.DataModel.Project.Model.Analyses[0].Solution.Solve(True)"""
 
+act_script_createMesh_QT_nb_elem = \
+r"""mesh_save_path = r"{mesh_save_path}"
+nb_elem = {nb_elem}
+
+# BUILDING FEA MODEL
+
+# Suppress small bodies
+max_volume = max([body.Volume for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body)])
+for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body):
+    if body.Volume == max_volume:
+        body.Suppressed = False
+    else:
+        body.Suppressed = True
+
+#   Get Project's model
+model = ExtAPI.DataModel.Project.Model
+
+
+# Get the whole geometry named selection
+geom_ns = model.AddNamedSelection()
+geom_ns.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoBody
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns.Generate()  # Generates the named selection
+
+geom_ns_surf = model.AddNamedSelection()
+geom_ns_surf.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns_surf.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoFace
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns_surf.Generate()  # Generates the named selection
+
+# Create the Meshing method
+autoMethod = model.Mesh.AddAutomaticMethod()
+autoMethod.Location = geom_ns
+
+autoMethod.Method = MethodType.AllTriAllTet  # Tetrahedron
+autoMethod.Algorithm = MeshMethodAlgorithm.PatchIndependent
+autoMethod.Refinement = 0  # No refinement
+autoMethod.DefinedBy = PatchIndependentDefineType.ApproxNumElements
+autoMethod.ApproximativeNumberOfElementsPerPart = nb_elem
+autoMethod.ElementOrder = ElementOrder.Quadratic
+    
+# Creating a boundary condition to avoid error issues
+fixed = model.Analyses[0].AddFixedSupport()
+fixed.Location = geom_ns_surf
+
+# Create the export command
+analysis = model.Analyses[0]
+cmd = analysis.AddCommandSnippet()
+if mesh_save_path.endswith(".cdb"):
+    mesh_save_path = mesh_save_path[:-4]
+cmd.Input = "cdwrite, db, '%s', cdb" % mesh_save_path
+
+# Solve/Export CDB
+ExtAPI.DataModel.Project.Model.Analyses[0].Solution.Solve(True)"""
+
+act_script_createMesh_LT_nb_elem = \
+r"""mesh_save_path = r"{mesh_save_path}"
+nb_elem = {nb_elem}
+
+# BUILDING FEA MODEL
+
+# Suppress small bodies
+max_volume = max([body.Volume for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body)])
+for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body):
+    if body.Volume == max_volume:
+        body.Suppressed = False
+    else:
+        body.Suppressed = True
+
+#   Get Project's model
+model = ExtAPI.DataModel.Project.Model
+
+
+# Get the whole geometry named selection
+geom_ns = model.AddNamedSelection()
+geom_ns.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoBody
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns.Generate()  # Generates the named selection
+
+geom_ns_surf = model.AddNamedSelection()
+geom_ns_surf.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns_surf.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoFace
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns_surf.Generate()  # Generates the named selection
+
+# Create the Meshing method
+autoMethod = model.Mesh.AddAutomaticMethod()
+autoMethod.Location = geom_ns
+
+autoMethod.Method = MethodType.AllTriAllTet  # Tetrahedron
+autoMethod.Algorithm = MeshMethodAlgorithm.PatchIndependent
+autoMethod.Refinement = 0  # No refinement
+autoMethod.DefinedBy = PatchIndependentDefineType.ApproxNumElements
+autoMethod.ApproximativeNumberOfElementsPerPart = nb_elem
+autoMethod.ElementOrder = ElementOrder.Linear
+
+# Creating a boundary condition to avoid error issues
+fixed = model.Analyses[0].AddFixedSupport()
+fixed.Location = geom_ns_surf
+
+# Create the export command
+analysis = model.Analyses[0]
+cmd = analysis.AddCommandSnippet()
+if mesh_save_path.endswith(".cdb"):
+    mesh_save_path = mesh_save_path[:-4]
+cmd.Input = "cdwrite, db, '%s', cdb" % mesh_save_path
+
+# Solve/Export CDB
+ExtAPI.DataModel.Project.Model.Analyses[0].Solution.Solve(True)"""
+
+act_script_createMesh_QT_size_elem = \
+r"""mesh_save_path = r"{mesh_save_path}"
+size_elem = {size_elem}
+
+# BUILDING FEA MODEL
+
+# Suppress small bodies
+max_volume = max([body.Volume for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body)])
+for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body):
+    if body.Volume == max_volume:
+        body.Suppressed = False
+    else:
+        body.Suppressed = True
+
+#   Get Project's model
+model = ExtAPI.DataModel.Project.Model
+
+
+# Get the whole geometry named selection
+geom_ns = model.AddNamedSelection()
+geom_ns.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoBody
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns.Generate()  # Generates the named selection
+
+geom_ns_surf = model.AddNamedSelection()
+geom_ns_surf.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns_surf.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoFace
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns_surf.Generate()  # Generates the named selection
+
+# Create the Meshing method
+autoMethod = model.Mesh.AddAutomaticMethod()
+autoMethod.Location = geom_ns
+
+autoMethod.Method = MethodType.AllTriAllTet  # Tetrahedron
+autoMethod.Algorithm = MeshMethodAlgorithm.PatchIndependent
+autoMethod.Refinement = 0  # No refinement
+autoMethod.DefinedBy = PatchIndependentDefineType.MaxElementSize
+autoMethod.MaximumElementSize = Quantity(size_elem, "mm")
+autoMethod.ElementOrder = ElementOrder.Quadratic
+
+# Creating a boundary condition to avoid error issues
+fixed = model.Analyses[0].AddFixedSupport()
+fixed.Location = geom_ns_surf
+
+# Create the export command
+analysis = model.Analyses[0]
+cmd = analysis.AddCommandSnippet()
+if mesh_save_path.endswith(".cdb"):
+    mesh_save_path = mesh_save_path[:-4]
+cmd.Input = "cdwrite, db, '%s', cdb" % mesh_save_path
+
+# Solve/Export CDB
+ExtAPI.DataModel.Project.Model.Analyses[0].Solution.Solve(True)"""
+
+act_script_createMesh_LT_size_elem = \
+r"""mesh_save_path = r"{mesh_save_path}"
+size_elem = {size_elem}
+
+# BUILDING FEA MODEL
+
+# Suppress small bodies
+max_volume = max([body.Volume for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body)])
+for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body):
+    if body.Volume == max_volume:
+        body.Suppressed = False
+    else:
+        body.Suppressed = True
+
+#   Get Project's model
+model = ExtAPI.DataModel.Project.Model
+
+
+# Get the whole geometry named selection
+geom_ns = model.AddNamedSelection()
+geom_ns.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoBody
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns.Generate()  # Generates the named selection
+
+geom_ns_surf = model.AddNamedSelection()
+geom_ns_surf.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns_surf.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoFace
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns_surf.Generate()  # Generates the named selection
+
+# Create the Meshing method
+autoMethod = model.Mesh.AddAutomaticMethod()
+autoMethod.Location = geom_ns
+
+autoMethod.Method = MethodType.AllTriAllTet  # Tetrahedron
+autoMethod.Algorithm = MeshMethodAlgorithm.PatchIndependent
+autoMethod.Refinement = 0  # No refinement
+autoMethod.DefinedBy = PatchIndependentDefineType.MaxElementSize
+autoMethod.MaximumElementSize = Quantity(size_elem, "mm")
+autoMethod.ElementOrder = ElementOrder.Linear
+
+# Creating a boundary condition to avoid error issues
+fixed = model.Analyses[0].AddFixedSupport()
+fixed.Location = geom_ns_surf
+
+# Create the export command
+analysis = model.Analyses[0]
+cmd = analysis.AddCommandSnippet()
+if mesh_save_path.endswith(".cdb"):
+    mesh_save_path = mesh_save_path[:-4]
+cmd.Input = "cdwrite, db, '%s', cdb" % mesh_save_path
+
+# Solve/Export CDB
+ExtAPI.DataModel.Project.Model.Analyses[0].Solution.Solve(True)"""
+
+act_script_createMesh_default = \
+r"""mesh_save_path = r"{mesh_save_path}"
+nb_elem = {nb_elem} * 1000
+size_elem = {size_elem}  # Approximate size of elements in mm (may be None if nb_elem is not None)
+type_elem = "{type_elem}"  # Type of element. Either 'tet', 'hex' or 'voxel'.
+
+# BUILDING FEA MODEL
+
+# Suppress small bodies
+max_volume = max([body.Volume for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body)])
+for body in DataModel.GetObjectsByType(Ansys.ACT.Automation.Mechanical.Body):
+    if body.Volume == max_volume:
+        body.Suppressed = False
+    else:
+        body.Suppressed = True
+
+#   Get Project's model
+model = ExtAPI.DataModel.Project.Model
+
+
+# Get the whole geometry named selection
+geom_ns = model.AddNamedSelection()
+geom_ns.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoBody
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns.Generate()  # Generates the named selection
+
+geom_ns_surf = model.AddNamedSelection()
+geom_ns_surf.ScopingMethod = GeometryDefineByType.Worksheet
+GenerationCriteria = geom_ns_surf.GenerationCriteria
+criterium = Ansys.ACT.Automation.Mechanical.NamedSelectionCriterion()  # Criterium to place in the criteria list
+criterium.Action = SelectionActionType.Add
+criterium.EntityType = SelectionType.GeoFace
+criterium.Criterion = SelectionCriterionType.Size
+criterium.Operator = SelectionOperatorType.GreaterThan
+criterium.Value = Quantity("0 [mm mm]")
+GenerationCriteria.Add(criterium)  # Adds criterium to criteria list
+geom_ns_surf.Generate()  # Generates the named selection
+
+
+# Create the Meshing method
+autoMethod = model.Mesh.AddAutomaticMethod()
+autoMethod.Location = geom_ns
+
+if type_elem == 'QT':
+    autoMethod.Method = MethodType.AllTriAllTet  # Tetrahedron
+    autoMethod.Algorithm = MeshMethodAlgorithm.PatchIndependent
+    autoMethod.Refinement = 0  # No refinement
+    if nb_elem:
+        autoMethod.DefinedBy = PatchIndependentDefineType.ApproxNumElements
+        autoMethod.ApproximativeNumberOfElementsPerPart = nb_elem
+    elif size_elem:
+        autoMethod.DefinedBy = PatchIndependentDefineType.MaxElementSize
+        autoMethod.MaximumElementSize = Quantity(size_elem, "mm")
+    autoMethod.ElementOrder = ElementOrder.Quadratic
+elif type_elem == 'QV':
+    autoMethod.Method = MethodType.Cartesian  # Cartesian
+    autoMethod.SweepESizeType = 0
+    autoMethod.SweepElementSize = Quantity(size, "mm")  # Elem size
+    autoMethod.SpacingOption = 0
+    autoMethod.ProjectionFactor = 0
+    autoMethod.ProjectInConstantZPlane = False
+    autoMethod.StretchFactorX = 1
+    autoMethod.StretchFactorY = 1
+    autoMethod.StretchFactorZ = 1
+    autoMethod.CoordinateSystem = model.CoordinateSystems.Children[0]
+    autoMethod.WriteICEMCFDFiles = False
+
+# Creating a boundary condition to avoid error issues
+fixed = model.Analyses[0].AddFixedSupport()
+fixed.Location = geom_ns_surf
+
+
+# Create the export command
+analysis = model.Analyses[0]
+cmd = analysis.AddCommandSnippet()
+if mesh_save_path.endswith(".cdb"):
+    mesh_save_path = mesh_save_path[:-4]
+cmd.Input = "cdwrite, db, '%s', cdb" % mesh_save_path
+
+
+# Solve/Export CDB
+ExtAPI.DataModel.Project.Model.Analyses[0].Solution.Solve(True)"""
+
 act_template_get_volume = \
 r'''
 #### Paths ####

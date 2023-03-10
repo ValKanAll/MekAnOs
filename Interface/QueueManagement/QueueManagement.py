@@ -1,13 +1,10 @@
-from PyQt5.QtCore import QDateTime, Qt, QTimer, QSize, QMargins, pyqtSignal
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
-        QDial, QDialog, QFileDialog, QFrame, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-        QMainWindow, QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
-        QSlider, QSpinBox, QStyleFactory, QTableWidget, QTableWidgetItem, QTabWidget, QTextEdit,
-        QTreeWidget, QTreeWidgetItem, QScrollArea, QSplitter, QStackedLayout, QTabWidget, QTabBar,
-        QToolButton, QVBoxLayout, QWidget)
-from PyQt5.QtGui import QIcon, QFont, QColor, QBrush
+from PyQt5.QtCore import Qt, QMargins
+from PyQt5.QtWidgets import (QApplication, QComboBox, QDialog, QGridLayout, QHBoxLayout, QLineEdit,
+                             QPushButton, QStyleFactory, QTableWidget, QTableWidgetItem, QScrollArea, QTabWidget,
+                             QVBoxLayout, QWidget)
+from PyQt5.QtGui import QFont, QColor, QBrush
 
-from Interface.QueueManagement.Waiting_list import Waiting_list
+from Waiting_list.Waiting_list import Waiting_list
 from Interface.CustomClasses import CustomQToolButton
 
 import sys
@@ -28,7 +25,7 @@ class QueueManagementWindow(QDialog):
         self.setStyleSheet('QGroupBox{font-size: 11pt;}'
                            'QGroupBox::title{color: #003066;}')
 
-        self.setMinimumSize(1200, 800)
+        self.setMinimumSize(800, 500)
 
         self.properties = ['Time', 'Action', 'Dataset', 'Sample', 'Segmentation', 'Mesh',
                                                   'Mesh analysis', 'Material step (MPa)', 'Min value material (MPa)',
@@ -61,11 +58,10 @@ class QueueManagementWindow(QDialog):
 
     def create_filter_tab(self):
         self.filter_widget = QWidget()
-        self.filter_layout = QVBoxLayout()
+        self.filter_layout = QHBoxLayout()
         self.filter_widget.setLayout(self.filter_layout)
 
         self.filter_button = QPushButton('Filter')
-        self.filter_layout.addWidget(self.filter_button)
         self.filter_button.clicked.connect(self.filter)
 
         self.filter_scroll = QScrollArea(self)
@@ -77,9 +73,10 @@ class QueueManagementWindow(QDialog):
         self.filter_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.filter_scroll.setWidgetResizable(True)
         self.filter_scroll.setMinimumHeight(200)
-        self.filter_scroll.setMinimumWidth(600)
+        self.filter_scroll.setMinimumWidth(500)
 
         self.filter_layout.addWidget(self.filter_scroll)
+        self.filter_layout.addWidget(self.filter_button)
 
         self.filterFieldList = []
 
@@ -126,6 +123,9 @@ class QueueManagementWindow(QDialog):
         self.all_tab_widget.setLayout(self.all_tab_layout)
         self.all_table = QTableWidget()
         self.all_table.setColumnCount(15)
+        font = QFont()
+        font.setPointSize(10)
+        self.all_table.setFont(font)
         self.all_table.setHorizontalHeaderLabels(self.properties)
         self.all_table.setColumnWidth(0, 150)
         self.all_table.setColumnWidth(1, 100)
@@ -145,6 +145,9 @@ class QueueManagementWindow(QDialog):
         self.in_progress_tab_layout = QVBoxLayout()
         self.in_progress_tab_widget.setLayout(self.in_progress_tab_layout)
         self.in_progress_table = QTableWidget()
+        font = QFont()
+        font.setPointSize(10)
+        self.in_progress_table.setFont(font)
         self.in_progress_table.setColumnCount(15)
         self.in_progress_table.setHorizontalHeaderLabels(self.properties)
         self.in_progress_table.setColumnWidth(0, 150)
@@ -169,6 +172,7 @@ class QueueManagementWindow(QDialog):
             if criteria(action):
                 rowPosition = table.rowCount()
                 table.insertRow(rowPosition)
+                table.setRowHeight(rowPosition, 16)
                 numRows = table.rowCount()
                 index = 0
                 if action[-1] == 'waiting':
@@ -209,6 +213,7 @@ class FilterField(QWidget):
         self.comboBoxProperty.currentIndexChanged.connect(self.property_changed)
         # Choose law
         self.comboBoxOperation = QComboBox()
+        self.comboBoxOperation.setMinimumWidth(200)
         self.comboBoxOperation.setDisabled(True)
 
         # add to layout

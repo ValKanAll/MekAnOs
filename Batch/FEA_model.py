@@ -1,118 +1,68 @@
-import numpy as np
-import warnings
-import ANSYS_default_scripts.wb_scripts as wb_scripts
-import ANSYS_default_scripts.act_scripts as act_scripts
+from Global_paths import dataset_path
 import os
-import subprocess
-import qctma
+from Data.Excel_Reader import read_dataset_info, Dataset
+
+from Simulation.simulation_functions import simu_gen_mesh
 
 
 class FEA_model(object):
 
-    def __init__(self):
-        self.ansysWB_path = r"C:\Program Files\ANSYS Inc\v211\Framework\bin\Win64\RunWB2.exe"
-        self.type_elem = 'tet'  # if 'tet', create a tetrahedral mesh; if 'voxel', create a cartesian mesh (voxel-based hexaedral).
-        self.order_elem = 2  # Either 1 (first order element) or 2 (second order element).
-        self.size_elem = None  # Size of the element (may be None if nb_elem is not None).
-        self.nb_elem = None  # Total number of elements (may be None if size_elem is not None).
-        self.deltaE = 0  # Step between each material definition (MPa) (if 0, each element will have a specific material).
+    def __init__(self, dataset_name, sample, segmentation):
+        self.dataset = read_dataset_info(dataset_path, dataset_name)
+        self.dataset_name = dataset_name  # dataset name
+        self.sample = sample  # sample ID
+        self.segmentation = segmentation  # segmentation name
 
-    def gl2density(self, gl_array):
+        # Define file and path folders for each datasets
+
+        self.folder_path = self.dataset.main_folder
+        self.act_script_folder = os.path.join(self.folder_path, 'ACT_scripts')
+        self.wb_script_folder = os.path.join(self.folder_path, 'WB_scripts')
+
+        if self.dataset_name == "Wegrzyn et al. (2011)":
+            resolution = self.segmentation.split('_')[0]
+            resolution_folder = os.path.join(self.folder_path, self.sample, self.sample + '_' + resolution)
+            self.dicom_folder = os.path.join(resolution_folder, self.sample + '_' + resolution + '_DICOM')
+            self.nrrd_path = None
+            self.stl_path = os.path.join(resolution_folder, self.sample + '_' + self.segmentation)
+            self.mesh_folder = os.path.join(resolution_folder, "Mesh")
+            self.mekamesh_folder = os.path.join(resolution_folder, "Mesh")
+
+        elif self.dataset_name == "Choisne et al. (2018)":
+            self.dicom_folder = None
+            self.nrrd_path = os.path.join(self.folder_path, 'Seg_VB', 'Seg_' + self.sample[:-3] + '_VB.nrrd')
+            self.stl_path = os.path.join(self.folder_path, 'Segmentation', self.sample + '_' + self.segmentation + '.stl')
+            self.mesh_folder = os.path.join(self.folder_path, "Mesh")
+            self.mekamesh_folder = os.path.join(self.folder_path, "Mekamesh")
+
+        elif self.dataset_name == "Stadelmann et al. (2020)":
+            sample_folder = os.path.join(self.folder_path, self.sample)
+            resolution = self.segmentation.split('_')[0]
+            self.dicom_folder = os.path.join(sample_folder, self.sample + '_' + resolution + '_DICOM')
+            self.nrrd_path = None
+            self.stl_path = os.path.join(sample_folder, self.sample + '_' + self.segmentation + '.stl')
+            self.mesh_folder = sample_folder
+            self.mekamesh_folder = sample_folder
+
+    def create_mesh(self, element_type='QTV', param=1, mesh_save_path=""):
         """
-        Transforms the grey level value to a density value (the equation is obtained with the help of a phantom).
-        :param gl_array: Array or value of the pixels' gray level.
-        :return: The associated density.
+        Launch meshing
         """
+        self.element_type = element_type
+        self.param = param
+        if mesh_save_path:
+            self.mesh_base = mesh_save_path.split('.cdb')[0]
+            self.mesh_path = mesh_save_path
+        else:
+            self.mesh_base = self.sample + "_" + self.segmentation + "_" + self.element_type + '_' + self.param
+            self.mesh_path = os.path.join(self.mesh_folder, self.mesh_base, self.mesh_base + '.cdb')
 
-        return np.array(gl_array)
+        act_script_path = os.path.join(self.act_script_folder, self.mesh_base + '_act_script_path.py')
+        wb_script_path = os.path.join(self.wb_script_folder, self.mesh_base + '_wb_script_path.py')
 
-    def density2E(self, density_mat):
-        """
-        Transforms the density values to Young's modulus values.
-        :param density_array: Array or value of the density.
-        :return: The associated Young's modulus.
-        """
+        # Launch simulation
+        simu_gen_mesh(self.mesh_path, self.stl_path, act_script_path, wb_script_path, self.element_type, self.param)
 
-        return np.array(density_mat)
-
-    def act_script_mesh_creation(self, type_elem='tet', order_elem=2, size_elem=None, nb_elem=None, mesh_save_path=""):
-        """
-        Create an Ansys Mechanical (ACT) script file for mesh creation.
-        :param type_elem: if 'tet', create a tetrahedral mesh; if 'voxel', create a cartesian mesh (voxel-based hexaedral).
-        :param order_elem: Either 1 (first order element) or 2 (second order element).
-        :param size_elem: size of the element (may be None if nb_elem is not None).
-        :param nb_elem: Total number of elements (may be None if size_elem is not None).
-        :param mesh_save_path: Path to the mesh that will be created. If "", the path will be the same as stl_path,
-        with the extension changed with '.cdb"
-        :return act_create_mesh_script: String containing the script to use with Ansys Mechanical to create a mesh.
-        """
-        if not size_elem and not nb_elem:
-            raise ValueError("size_elem and nb_elem are both None. Please assign a value to one of both.")
-        if size_elem and nb_elem:
-            raise ValueError("size_elem and nb_elem are both assigned. Please assign a value to ONLY one of both.")
-        if type_elem == 'voxel' and not size_elem:
-            raise ValueError("'voxel' type only accepts size_elem to define the number and size of elements. Please assign a value to size_elem.")
-
-        act_create_mesh_script = act_scripts.act_script_createMesh_default
-        act_create_mesh_script = act_create_mesh_script.replace("{type_elem}", str(type_elem))
-        act_create_mesh_script = act_create_mesh_script.replace("{order_elem}", str(order_elem))
-        act_create_mesh_script = act_create_mesh_script.replace("{size_elem}", str(size_elem))
-        act_create_mesh_script = act_create_mesh_script.replace("{nb_elem}", str(nb_elem))
-        act_create_mesh_script = act_create_mesh_script.replace("{mesh_save_path}", mesh_save_path)
-
-        return act_create_mesh_script
-
-    def wb_script_mesh_creation(self, stl_path="", act_script_path=""):
-        """
-        Create an Ansys Workbench script file for mesh creation.
-        :param stl_path: Path to the STL file.
-        :param act_script_path: Path to the ACT script file to create the mesh in Ansys Mechanical.
-        :return wb_create_mesh_script: String containing the script to use with Workbench to create a mesh.
-        """
-        if stl_path == "":
-            raise ValueError("The STL path is empty.")
-        if act_script_path == "":
-            raise ValueError("The ACT script file path is empty.")
-
-        wb_create_mesh_script = wb_scripts.wb_script_createMesh_default
-        wb_create_mesh_script = wb_create_mesh_script.replace("{stl_path}", str(stl_path))
-        wb_create_mesh_script = wb_create_mesh_script.replace("{act_script_path}", str(act_script_path))
-
-        return wb_create_mesh_script
-
-    def create_mesh(self, stl_path="", mesh_save_path="", script_save_dir_path=None):
-        """
-        Create .CDB mesh with Ansys Workbench process.
-        :param stl_path: see wb_script_mesh_creation.
-        :param mesh_save_path: see act_script_mesh_creation.
-        :param script_save_dir_path: Path to the directory in which Workbench and ACT scripts will be saved.
-        :return mesh_save_path:
-        """
-        if not script_save_dir_path:
-            warnings.warn("'script_save_dir_path' is empty.\n"
-                          "Scripts will be saved in directory 'Scripts' in the same directory as the STL file.")
-            script_save_dir_path = os.path.join(os.path.split(stl_path)[0], "Scripts")
-        if not os.path.exists(script_save_dir_path):
-            os.makedirs(script_save_dir_path)
-        if not os.path.exists(os.path.split(mesh_save_path)[0]):
-            os.makedirs(os.path.split(mesh_save_path)[0])
-
-        act_script_path = os.path.join(script_save_dir_path, "ACT_mesh_creation.py")
-        with open(act_script_path, 'w+') as f:
-            f.write(
-                self.act_script_mesh_creation(type_elem=self.type_elem, order_elem=self.order_elem, size_elem=self.size_elem,
-                                              nb_elem=self.nb_elem, mesh_save_path=mesh_save_path)
-            )
-
-        wb_script_path = os.path.join(script_save_dir_path, "WB_mesh_creation.wbjn")
-        with open(wb_script_path, 'w+') as f:
-            f.write(
-                self.wb_script_mesh_creation(stl_path=stl_path, act_script_path=act_script_path)
-            )
-
-        cmd = f'"{self.ansysWB_path}" -B -R "{wb_script_path}"'
-        subprocess.check_call(cmd, shell=True)
-        return mesh_save_path
 
     def inject_materials(self, source_mesh_path="", dicom_dir_path="", out_mesh_path=""):
         """
@@ -128,3 +78,12 @@ class FEA_model(object):
                     density2E=self.density2E, deltaE=self.deltaE, process=True, save_mesh_path=out_mesh_path)
 
         return out_mesh_path
+
+    def set_constitutive_laws(self, laws=[], save_mesh_path=''):
+        pass
+
+    def set_boundary_conditions(self, pstf_file_path=''):
+        pass
+
+    def simulate(self):
+        pass

@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-
+"""Uses plotly to show meshes in web browsers"""
 
 def add_points2graph(figure, points, legend=None, size=1, row=None, col=None):
     """

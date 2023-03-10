@@ -7,7 +7,7 @@ import itertools
 import scipy
 import scipy.linalg
 from Structure.STL import STL
-from ..Converters.Displayer import add_points2graph
+from Geometry_modifyer.Displayer import add_points2graph
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 import plotly.graph_objects as go

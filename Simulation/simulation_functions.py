@@ -10,6 +10,8 @@ import time
 import copy
 from stl import mesh
 
+from Global_paths import ansysWB_path
+
 
 def distance(point_a, point_b):
     xa, ya, za = point_a
@@ -36,6 +38,85 @@ def get_height(_mekamesh_path, _result_path):
 
     except FileNotFoundError:
         print("ERROR filenotfound ", _mekamesh_path)
+
+
+def simu_gen_mesh(_mesh_path, _stl_path, _act_script_path, _wb_script_path, element_type, param):
+    print(_mesh_path)
+
+    # linear tetrahedron defined by element volume
+    if element_type == 'LTV':
+        volume = mesh.Mesh.from_file(_stl_path).get_mass_properties()[0]
+        nb_elem = int(volume / param)
+        print('elemental volume =', param, 'mm3')
+        print('number of elements =', nb_elem)
+
+        act_linear_script = act_scripts.act_script_createMesh_LT_nb_elem
+        act_linear_script = act_linear_script.replace("{nb_elem}", str(nb_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # quadratic tetrahedron defined by element volume
+    elif element_type == 'QTV':
+        volume = mesh.Mesh.from_file(_stl_path).get_mass_properties()[0]
+        nb_elem = int(volume / param)
+        print('elemental volume =', param, 'mm3')
+        print('number of elements =', nb_elem)
+
+        act_linear_script = act_scripts.act_script_createMesh_QT_nb_elem
+        act_linear_script = act_linear_script.replace("{nb_elem}", str(nb_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # linear tetrahedron defined by number of elements
+    elif element_type == 'LTN':
+        nb_elem = param
+        print('number of elements =', nb_elem)
+
+        act_linear_script = act_scripts.act_script_createMesh_LT_nb_elem
+        act_linear_script = act_linear_script.replace("{nb_elem}", str(nb_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # quadratic tetrahedron defined by number of elements
+    elif element_type == 'QTN':
+        nb_elem = param
+        print('number of elements =', nb_elem)
+
+        act_linear_script = act_scripts.act_script_createMesh_QT_nb_elem
+        act_linear_script = act_linear_script.replace("{nb_elem}", str(nb_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    elif element_type == 'LTS':
+        size_elem = param
+        print('size of elements =',size_elem, ' mm')
+
+        act_linear_script = act_scripts.act_script_createMesh_LT_size_elem
+        act_linear_script = act_linear_script.replace("{size_elem}", str(size_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    elif element_type == 'QTS':
+        size_elem = param
+        print('size of elements =', size_elem, ' mm')
+
+        act_linear_script = act_scripts.act_script_createMesh_QT_size_elem
+        act_linear_script = act_linear_script.replace("{size_elem}", str(size_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # TODO QH and QV + D and S
+    # TODO orient with pstf file for QH and QV
+
+    with open(_act_script_path, 'w+') as f:
+        f.write(act_linear_script)
+
+    wb_script_simulation = wb_scripts.wb_script_createMesh_default
+    wb_script_simulation = wb_script_simulation.replace("{stl_path}", _stl_path)
+    wb_script_simulation = wb_script_simulation.replace("{act_script_path}", _act_script_path)
+    with open(_wb_script_path, 'w+') as f:
+        f.write(wb_script_simulation)
+    try:
+        print("Started at : ", str(datetime.datetime.now()))
+        cmd = r'"{}"  -B -R "{}"'.format(ansysWB_path, _wb_script_path)
+        print(cmd)
+        subprocess.check_call(cmd, shell=True)
+    except:
+        print("ERROR : %s" % _wb_script_path)
 
 
 def simu_EPP(_mekamesh_path, _result_reaction_file, _act_script_path, _wb_script_path, factor=1.9/100, norm=False):
