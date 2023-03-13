@@ -1,20 +1,14 @@
-import os
 import subprocess
 import datetime
-from cdb_reader import distance_endplates, read_mean_coordinates_named_selection
-from Vector_cone_error import rotate_error_cone
 import ANSYS_default_scripts.act_scripts as act_scripts
 import ANSYS_default_scripts.wb_scripts as wb_scripts
-import numpy as np
 import time
-import copy
-from stl import mesh
 
-from simulation_functions import (distance, diff, get_height,
-                                    simu_EPP, simu_EPP_all_times, simu_EL, simu_get_volume,
-                                    simu_gen_mesh_from_elemental_volume, simu_EPP_remote_point, simu_EPP_center_remote_point)
+from simulation_functions import (get_height,
+                                  simu_EPP, simu_EPP_all_times, simu_EL, simu_get_volume,
+                                  simu_gen_mesh_from_elemental_volume, simu_EPP_remote_point, simu_EPP_center_remote_point)
 
-from Choose_database import *
+from Batch.Choose_database import *
 
 
 if is_JPR:

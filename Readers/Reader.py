@@ -1,5 +1,5 @@
 import numpy as np
-from cdb_reader import read_cdbfile_return_dict_element_density
+from Readers.cdb_reader import read_cdbfile_return_dict_element_density
 
 
 def read_volume_file(path, return_dict=False):

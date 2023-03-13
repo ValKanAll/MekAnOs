@@ -1,12 +1,11 @@
 import os
 import subprocess
 import datetime
-from cdb_reader import distance_endplates, read_mean_coordinates_named_selection
+from Readers.cdb_reader import read_mean_coordinates_named_selection
 from Vector_cone_error import rotate_error_cone
 import ANSYS_default_scripts.act_scripts as act_scripts
 import ANSYS_default_scripts.wb_scripts as wb_scripts
 import numpy as np
-import time
 import copy
 from stl import mesh
 
@@ -83,6 +82,7 @@ def simu_gen_mesh(_mesh_path, _stl_path, _act_script_path, _wb_script_path, elem
         act_linear_script = act_linear_script.replace("{nb_elem}", str(nb_elem))
         act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
 
+    # linear tetrahedron defined by element size
     elif element_type == 'LTS':
         size_elem = param
         print('size of elements =',size_elem, ' mm')
@@ -91,6 +91,7 @@ def simu_gen_mesh(_mesh_path, _stl_path, _act_script_path, _wb_script_path, elem
         act_linear_script = act_linear_script.replace("{size_elem}", str(size_elem))
         act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
 
+    # quadratic tetrahedron defined by element size
     elif element_type == 'QTS':
         size_elem = param
         print('size of elements =', size_elem, ' mm')
@@ -99,7 +100,78 @@ def simu_gen_mesh(_mesh_path, _stl_path, _act_script_path, _wb_script_path, elem
         act_linear_script = act_linear_script.replace("{size_elem}", str(size_elem))
         act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
 
-    # TODO QH and QV + D and S
+    # linear hexahedron defined by element size
+    elif element_type == 'LHS':
+        size_elem = param
+        print('size of elements =', size_elem, ' mm')
+
+        act_linear_script = act_scripts.act_script_createMesh_LH_size_elem
+        act_linear_script = act_linear_script.replace("{size_elem}", str(size_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # quadratic hexahedron defined by element size
+    elif element_type == 'QHS':
+        size_elem = param
+        print('size of elements =', size_elem, ' mm')
+
+        act_linear_script = act_scripts.act_script_createMesh_QH_size_elem
+        act_linear_script = act_linear_script.replace("{size_elem}", str(size_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # linear hexahedron defined by number of divisions
+    elif element_type == 'LHD':
+        nb_div = param
+        print('number of divisions =', nb_div)
+
+        act_linear_script = act_scripts.act_script_createMesh_LH_nb_div
+        act_linear_script = act_linear_script.replace("{nb_div}", str(nb_div))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # quadratic hexahedron defined by number of divisions
+    elif element_type == 'QHD':
+        nb_div = param
+        print('number of divisions =', nb_div)
+
+        act_linear_script = act_scripts.act_script_createMesh_QH_nb_div
+        act_linear_script = act_linear_script.replace("{nb_div}", str(nb_div))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # linear voxel defined by element size
+    elif element_type == 'LVS':
+        size_elem = param
+        print('size of elements =', size_elem, ' mm')
+
+        act_linear_script = act_scripts.act_script_createMesh_LV_size_elem
+        act_linear_script = act_linear_script.replace("{size_elem}", str(size_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # quadratic voxel defined by element size
+    elif element_type == 'QVS':
+        size_elem = param
+        print('size of elements =', size_elem, ' mm')
+
+        act_linear_script = act_scripts.act_script_createMesh_QV_size_elem
+        act_linear_script = act_linear_script.replace("{size_elem}", str(size_elem))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # linear voxel defined by number of divisions
+    elif element_type == 'LVD':
+        nb_div = param
+        print('number of divisions =', nb_div)
+
+        act_linear_script = act_scripts.act_script_createMesh_LV_nb_div
+        act_linear_script = act_linear_script.replace("{nb_div}", str(nb_div))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
+    # quadratic voxel defined by number of divisions
+    elif element_type == 'QVD':
+        nb_div = param
+        print('number of divisions =', nb_div)
+
+        act_linear_script = act_scripts.act_script_createMesh_QV_nb_div
+        act_linear_script = act_linear_script.replace("{nb_div}", str(nb_div))
+        act_linear_script = act_linear_script.replace("{mesh_save_path}", _mesh_path)
+
     # TODO orient with pstf file for QH and QV
 
     with open(_act_script_path, 'w+') as f:
@@ -115,8 +187,14 @@ def simu_gen_mesh(_mesh_path, _stl_path, _act_script_path, _wb_script_path, elem
         cmd = r'"{}"  -B -R "{}"'.format(ansysWB_path, _wb_script_path)
         print(cmd)
         subprocess.check_call(cmd, shell=True)
+
+        if os.path.isfile(_mesh_path):
+            return 0
+        else:
+            return 1
     except:
         print("ERROR : %s" % _wb_script_path)
+        return 1
 
 
 def simu_EPP(_mekamesh_path, _result_reaction_file, _act_script_path, _wb_script_path, factor=1.9/100, norm=False):

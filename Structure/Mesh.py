@@ -1,12 +1,12 @@
-from module.Reader.cdb_reader import read_cdbfile
-from module.Writer.cdb_writer import write_cdb_file
+from Readers.cdb_reader import read_cdbfile
+from Writers.cdb_writer import write_cdb_file
 import datetime
 import numpy as np
 import random
 
 
 class Mesh:
-    def __init__(self, ID=None, path=None, parent=None):
+    def __init__(self, path=None, parent=None):
         if path and type(path) == str:
             self.path = path
         else:
@@ -64,26 +64,6 @@ class Mesh:
         return np.array(random.sample([node.get_coord() for node in self.node_list
                                          ], population))  # returns np.array of n=population samples from points
 
-    def get_ID(self):
-        return self.ID
-
-    def actualise_ID(self, new_ID):
-        self.ID = new_ID
-        for mekamesh in self.mekamesh_list:
-            new_mekamesh_ID = new_ID + '_' + mekamesh.get_ID().split('_')[-1]
-            mekamesh.actualise_ID(new_mekamesh_ID)
-
-    def remove_mekamesh(self, ID):
-        index = int(ID.split('_')[-1]) - 1
-        if index < len(self.mekamesh_list) - 1:
-            for i in range(index + 1, len(self.mekamesh_list)):
-                if len(str(i-1)) == 1:
-                    new_ID = self.ID + '_0' + str(i)
-                else:
-                    new_ID = self.ID + '_' + str(i)
-                self.mekamesh_list[i].actualise_ID(new_ID)
-        self.mekamesh_list.pop(index)
-
     def get_path(self):
         return self.path
 
@@ -123,13 +103,13 @@ class Mesh:
         self.named_selections_list = named_selections_list
 
     def get_infos(self):
-        return [['Description', [['Object', 'Mesh'], ['ID', self.ID], ['Number of element', str(self.number_element)],
+        return [['Description', [['Object', 'Mesh'], ['Number of element', str(self.number_element)],
                 ['Number of Mekameshes', str(len(self.mekamesh_list))], ['Path', self.path], ['FileName', self.path.split('/')[-1].split('\\')[-1]]]],
                 ['Element types', [[str(element_type[0]), str(element_type[1]), str(element_type[2])] for element_type in self.element_type_list]],
                 ['Named selections', self.named_selections_list]]
 
     def get_attributes_infos(self):
-        self.attribute_list = [['Mesh', self.ID]]
+        self.attribute_list = [['Mesh', '']]
         self.attribute_list += [['Named selections', named_selections[0]] for named_selections in self.named_selections_list]
         return self.attribute_list
 

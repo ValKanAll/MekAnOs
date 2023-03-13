@@ -1,6 +1,5 @@
-from qctma import qctma
+from Material_assignment.qctma import qctma
 import numpy as np
-import math
 
 
 def gl2density(intercept, slope, no_min=False):

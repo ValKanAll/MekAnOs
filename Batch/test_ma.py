@@ -105,14 +105,7 @@ def return_mechanical_law_from_config(config):
     return mechanical_law_list
 
 
-def sph2cart(az, el):
-    '''Transform spherical coordinates to Cartesian'''
-    cos_el = np.cos(el).reshape(-1, 1)
-    cos_az = np.cos(az).reshape(-1, 1)
-    sin_az = np.sin(az).reshape(-1, 1)
-    sin_el = np.sin(el).reshape(-1, 1)
-    cart = np.concatenate((cos_el * cos_az, cos_el * sin_az, sin_el), 1)
-    return cart
+
 
 
 def main():

@@ -28,11 +28,11 @@ class FileVisionerWindow(QDialog):
         self.setMinimumSize(600, 600)
 
 
-        # main layout
         self.mainLayout = QGridLayout()
         self.mainLayout.setSpacing(0)
         self.mainLayout.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setLayout(self.mainLayout)
+
 
 
 

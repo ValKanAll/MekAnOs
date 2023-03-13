@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QToolButton, QVBoxLayout, QWidget)
 from PyQt5.QtGui import QIcon, QFont
 
-from MekAnos.Data.Excel_Reader import read_dataset_info
-from MekAnos.Interface.CustomClasses import CustomQTreeWidget, CustomQTreeWidgetItem
+from Data.Excel_Reader import read_dataset_info
+from Interface.CustomClasses import CustomQTreeWidget, CustomQTreeWidgetItem
 
 import numpy as np
 import math

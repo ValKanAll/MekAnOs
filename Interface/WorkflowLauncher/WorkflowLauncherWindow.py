@@ -7,11 +7,13 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QToolButton, QVBoxLayout, QWidget)
 from PyQt5.QtGui import QIcon, QFont
 
-from MekAnos.Data.Excel_Reader import read_dataset_info
-from MekAnos.Interface.WorkflowLauncher.Dataset_tab import DatasetTab
-from MekAnos.Interface.WorkflowLauncher.Segmentation_tab import SegmentationTab
-from MekAnos.Interface.WorkflowLauncher.Mesh_tab import MeshTab
-from MekAnos.Interface.WorkflowLauncher.Mekamesh_tab import Mekamesh_tab
+from Data.Excel_Reader import read_dataset_info
+from Interface.WorkflowLauncher.Dataset_tab import DatasetTab
+from Interface.WorkflowLauncher.Segmentation_tab import SegmentationTab
+from Interface.WorkflowLauncher.Mesh_tab import MeshTab
+from Interface.WorkflowLauncher.Mekamesh_tab import Mekamesh_tab
+from Interface.WorkflowLauncher.BoundaryConditions_tab import BoundaryConditions_tab
+from Interface.WorkflowLauncher.Simulation_tab import Simulation_tab
 
 import numpy as np
 import math
@@ -55,7 +57,7 @@ class WorkflowLauncherWindow(QDialog):
         # Dataset file reader widget
         self.dataset_file_reader_widget = QWidget()
         self.dataset_file_reader_layout = QHBoxLayout()
-        self.pathEditdatasetReader = QTextEdit('D:\MekAnOs_workflow\MekAnos\Data\Samples.xlsx')
+        self.pathEditdatasetReader = QTextEdit('/Users/valentinallard/MekAnOs/Data/Samples.xlsx')
         self.pathSearcher = QPushButton('Browse')
         self.pathSearcher.clicked.connect(self.open_dataset_file)
         self.refreshButton = QPushButton('Open / Refresh')
@@ -104,6 +106,8 @@ class WorkflowLauncherWindow(QDialog):
             self.tab_creator.setTabEnabled(5, False)
         else:
             self.tab_creator.setTabEnabled(3, True)
+            self.tab_creator.setTabEnabled(4, True)
+            self.tab_creator.setTabEnabled(5, True)
         return self.meshes
 
     def get_selected_seg(self):
@@ -137,27 +141,22 @@ class WorkflowLauncherWindow(QDialog):
         self.tab_creator.setTabEnabled(2, False)
 
     def create_mekamesh_tab(self):
-
         self.mekameshTab = Mekamesh_tab(self)
 
         self.tab_creator.addTab(self.mekameshTab, 'Mekamesh')
         self.tab_creator.setTabEnabled(3, False)
 
     def create_boundary_tab(self):
-        self.boundaryTree = QTreeWidget()
-        self.boundaryTree.setMinimumHeight(150)
-        self.boundaryTree.setStyleSheet('QTreeWidget{font-size:10pt;}')
-        self.boundaryTree.setColumnCount(9)
-        self.tab_creator.addTab(self.boundaryTree, 'Boundary conditions')
-        self.tab_creator.setTabEnabled(4, False)
+        self.boundaryConditionsTab = BoundaryConditions_tab(self)
+
+        self.tab_creator.addTab(self.boundaryConditionsTab, 'Boundary conditions')
+        self.tab_creator.setTabEnabled(4, True)
 
     def create_simulation_tab(self):
-        self.simulationTree = QTreeWidget()
-        self.simulationTree.setMinimumHeight(150)
-        self.simulationTree.setStyleSheet('QTreeWidget{font-size:10pt;}')
-        self.simulationTree.setColumnCount(9)
-        self.tab_creator.addTab(self.simulationTree, 'Simulation')
-        self.tab_creator.setTabEnabled(5, False)
+        self.simulationTab = Simulation_tab(self)
+
+        self.tab_creator.addTab(self.simulationTab, 'Simulation')
+        self.tab_creator.setTabEnabled(5, True)
 
     def fill_tree_dataset(self):
         self.datasetTab.datasetTree.fill()

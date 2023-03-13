@@ -4,9 +4,9 @@ import datetime
 
 import sys
 
-from MekAnos.Interface.QueueManagement.QueueManagement import QueueManagementWindow
-from MekAnos.Interface.WorkflowLauncher.WorkflowLauncherWindow import WorkflowLauncherWindow
-from MekAnos.Interface.FileVisioner.FileVisioner import FileVisionerWindow
+from Interface.QueueManagement.QueueManagement import QueueManagementWindow
+from Interface.WorkflowLauncher.WorkflowLauncherWindow import WorkflowLauncherWindow
+from Interface.FileVisioner.FileVisioner import FileVisionerWindow
 from Interface.ResultAnalyser.ResultsAnalyser import ResultsAnalyserWindow
 from Interface.CustomClasses import CustomQToolButton
 

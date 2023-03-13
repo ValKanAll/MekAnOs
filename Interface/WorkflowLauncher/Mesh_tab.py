@@ -1,19 +1,8 @@
-from PyQt5.QtCore import QDateTime, Qt, QTimer, QSize, QMargins, pyqtSignal
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
-        QDial, QDialog, QFileDialog, QFrame, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-        QMainWindow, QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
-        QSlider, QSpinBox, QStyleFactory, QTableWidget, QTableWidgetItem, QTabWidget, QTextEdit,
-        QTreeWidget, QTreeWidgetItem, QScrollArea, QSplitter, QStackedLayout, QTabWidget, QTabBar,
-        QToolButton, QVBoxLayout, QWidget)
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QCheckBox, QComboBox, QGridLayout, QGroupBox, QLabel, QLineEdit,
+                             QPushButton, QVBoxLayout, QWidget)
 
-from MekAnos.Data.Excel_Reader import read_dataset_info
-from MekAnos.Interface.CustomClasses import CustomQTreeWidget, CustomQTreeWidgetItem
-
-import numpy as np
-import math
-
-import sys
+from Waiting_list.Waiting_list import Waiting_list
 
 __version__ = '1.0'
 

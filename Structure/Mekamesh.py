@@ -1,11 +1,11 @@
-from module.Reader.cdb_reader import read_cdbfile
-from module.Writer.cdb_writer import write_cdb_file
-from module.Structure.Mesh import Mesh
+from Reader.cdb_reader import read_cdbfile
+from Writer.cdb_writer import write_cdb_file
+from Structure.Mesh import Mesh
 
 
 class Mekamesh(Mesh):
-    def __init__(self, ID, path, parent=None):
-        Mesh.__init__(self, ID, path, parent)
+    def __init__(self, path, parent=None):
+        Mesh.__init__(self, path, parent)
     # TODO delete number_element
 
     # Define dependencies
@@ -42,7 +42,7 @@ class Mekamesh(Mesh):
         self.material_list = new_material_list
 
     def get_infos(self):
-        infos = [['Description', True, [['Object', 'Mechanical mesh'], ['Path', self.path], ['FileName', self.ID], ['Number of elements', str(self.number_element)]]],
+        infos = [['Description', True, [['Object', 'Mechanical mesh'], ['Path', self.path], ['Number of elements', str(self.number_element)]]],
                 ['Element types', True, [[str(element_type[0]), element_type[1], str(element_type[2])] for element_type in self.element_type_list],
                 ['Named selections', True, [[named_selections[0], str(len(named_selections[1])) + ' nodes'] for named_selections in self.named_selections_list]]]]
         material_info = []
@@ -52,7 +52,7 @@ class Mekamesh(Mesh):
         return infos
 
     def get_attributes_infos(self):
-        self.attribute_list = [['Mekamesh', self.ID]]
+        self.attribute_list = [['Mekamesh', self.path.split('/')[-1]]]
         self.attribute_list += [['Named selections', named_selections[0]] for named_selections in self.named_selections_list]
         return self.attribute_list
 

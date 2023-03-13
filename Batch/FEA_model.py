@@ -3,6 +3,15 @@ import os
 from Data.Excel_Reader import read_dataset_info, Dataset
 
 from Simulation.simulation_functions import simu_gen_mesh
+from Geometry_modifyer.SetNamedSelections import detect_endplate, add_endplates_ns
+from Material_assignment.qctma import qctma
+from Material_assignment.ModifyMechanicalLaw import create_new_mekamesh_from_mekamesh
+
+from Material_assignment.Conversion_equations import gl2density_JPR_HRpQCT, gl2density_IBHGC, gl2density_ARTORG_microCT
+from Material_assignment.Conversion_equations import E2density, density2E
+
+from Structure.Mekamesh import Mekamesh
+
 
 
 class FEA_model(object):
@@ -27,6 +36,7 @@ class FEA_model(object):
             self.stl_path = os.path.join(resolution_folder, self.sample + '_' + self.segmentation)
             self.mesh_folder = os.path.join(resolution_folder, "Mesh")
             self.mekamesh_folder = os.path.join(resolution_folder, "Mesh")
+            self.gl2density = gl2density_JPR_HRpQCT
 
         elif self.dataset_name == "Choisne et al. (2018)":
             self.dicom_folder = None
@@ -34,6 +44,7 @@ class FEA_model(object):
             self.stl_path = os.path.join(self.folder_path, 'Segmentation', self.sample + '_' + self.segmentation + '.stl')
             self.mesh_folder = os.path.join(self.folder_path, "Mesh")
             self.mekamesh_folder = os.path.join(self.folder_path, "Mekamesh")
+            self.gl2density = gl2density_IBHGC
 
         elif self.dataset_name == "Stadelmann et al. (2020)":
             sample_folder = os.path.join(self.folder_path, self.sample)
@@ -43,6 +54,16 @@ class FEA_model(object):
             self.stl_path = os.path.join(sample_folder, self.sample + '_' + self.segmentation + '.stl')
             self.mesh_folder = sample_folder
             self.mekamesh_folder = sample_folder
+            self.gl2density = gl2density_ARTORG_microCT
+
+    def detect_endplates(self, plot=1):
+        """
+        if plot = 0 : no plot
+        if plot == 1 :
+        """
+        # create pstf file
+        detect_endplate(self.stl_path, sample=2000, distance=0.2, plot=plot, endplate_height=2)
+        self.pstf_file = self.stl_path.replace('.stl', '.pstf')
 
     def create_mesh(self, element_type='QTV', param=1, mesh_save_path=""):
         """
@@ -55,7 +76,7 @@ class FEA_model(object):
             self.mesh_path = mesh_save_path
         else:
             self.mesh_base = self.sample + "_" + self.segmentation + "_" + self.element_type + '_' + self.param
-            self.mesh_path = os.path.join(self.mesh_folder, self.mesh_base, self.mesh_base + '.cdb')
+            self.mesh_path = os.path.join(self.mesh_folder, self.mesh_base + '.cdb')
 
         act_script_path = os.path.join(self.act_script_folder, self.mesh_base + '_act_script_path.py')
         wb_script_path = os.path.join(self.wb_script_folder, self.mesh_base + '_wb_script_path.py')
@@ -63,27 +84,50 @@ class FEA_model(object):
         # Launch simulation
         simu_gen_mesh(self.mesh_path, self.stl_path, act_script_path, wb_script_path, self.element_type, self.param)
 
-
-    def inject_materials(self, source_mesh_path="", dicom_dir_path="", out_mesh_path=""):
+    def inject_materials(self, delta_E=10, min_E=1):
         """
         Define material for each element in the source mesh, based on the dicom and the gray level to Young's modulus
         relationships.
-        :param source_mesh_path: Path to the original mesh.
-        :param dicom_dir_path: Path to the Dicom directory.
-        :param out_mesh_path: Path to the final mesh that will be created. Maybe void, in that case, it will be saved in
-        the same directory and with the same name as the source mesh with a "_qctma" appendix.
-        :return out_mesh_path:
+        : param
         """
-        qctma.qctma(dcm_path=dicom_dir_path, mesh_path=source_mesh_path, gl2density=self.gl2density,
-                    density2E=self.density2E, deltaE=self.deltaE, process=True, save_mesh_path=out_mesh_path)
+        self.delta_E = delta_E
+        self.min_E = min_E
+        self.qctma_mesh_base = self.mesh_base + '_qctma_' + str(delta_E) + 'min' + str(min_E)
+        self.qctma_mesh_path = os.path.join(self.mekamesh_folder, self.qctma_mesh_base + '.cdb')
+        qctma(dcm_path=self.dicom_folder, nrrd_path=self.nrrd_path, mesh_path=self.mesh_path, gl2density=self.gl2density,
+                    density2E=density2E, deltaE=self.delta_E, process=True, save_mesh_path=self.qctma_mesh_path)
 
-        return out_mesh_path
+        return self.qctma_mesh_base
 
-    def set_constitutive_laws(self, laws=[], save_mesh_path=''):
-        pass
+    def set_constitutive_laws(self, config, save_mesh_path=''):
+        self.mekamesh = Mekamesh(path=self.qctma_mesh_path)
+        self.mekamesh.read()
 
-    def set_boundary_conditions(self, pstf_file_path=''):
+        create_new_mekamesh_from_mekamesh(self.mekamesh,
+                                          config,
+                                          write=False)
+        self.mekamesh.write()
+
+    def add_endplates(self):
+        add_endplates_ns(self.mekamesh_path, self.pstf_file)
         pass
 
     def simulate(self):
         pass
+
+
+if __name__ == '__main__':
+    dataset_name = ''
+    sample = ''
+    segmentation = ''
+    element_type = ''
+    param = 1
+    delta_E = 10
+    min_E = 1
+    config = 'KopEPP07'
+
+    model = FEA_model(dataset_name, sample, segmentation)
+    model.create_mesh(element_type, param)
+    model.inject_materials(delta_E, min_E)
+    model.set_constitutive_laws(config)
+    model.simulate()

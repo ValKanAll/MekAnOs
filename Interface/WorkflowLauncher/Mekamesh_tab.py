@@ -1,13 +1,8 @@
-from PyQt5.QtGui import QFont, QColor, QBrush, QIcon
-from PyQt5.QtCore import QDateTime, Qt, QTimer, QMargins, QSize
-from PyQt5.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox, QDateTimeEdit,
-        QDial, QDialog, QFileDialog, QFrame, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-        QMainWindow, QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
-        QSlider, QSpinBox, QStyleFactory, QTableWidget, QTableWidgetItem, QTabWidget, QTextEdit,
-        QTreeWidget, QTreeWidgetItem, QScrollArea, QSlider, QSplitter, QStackedLayout, QStatusBar, QToolButton,
-        QVBoxLayout, QWidget)
+from PyQt5.QtCore import Qt, QMargins
+from PyQt5.QtWidgets import (QCheckBox, QComboBox, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                             QPushButton, QScrollArea, QSlider, QVBoxLayout, QWidget)
 
-from MekAnos.Material_assignment.module.Reader.Mechanical_law_reader import global_list_EX, global_list_EY, global_list_EZ, \
+from Readers.Mechanical_law_reader import global_list_EX, global_list_EY, global_list_EZ, \
                                             global_list_PM, global_list_YS,\
                                             global_list_NUXY, global_list_NUXZ, global_list_NUYZ,\
                                             global_list_GXY, global_list_GXZ, global_list_GYZ
@@ -16,7 +11,7 @@ from MekAnos.Material_assignment.module.Reader.Mechanical_law_reader import glob
 
 from Interface.CustomClasses import CustomQToolButton
 
-from Interface.QueueManagement.Waiting_list import Waiting_list
+from Waiting_list.Waiting_list import Waiting_list
 
 
 class Mekamesh_tab(QWidget):
@@ -206,6 +201,8 @@ class Mekamesh_tab(QWidget):
             self.add_constitutive_laws_to_queue_button.setDisabled(True)
         else:
             self.add_constitutive_laws_to_queue_button.setDisabled(False)
+            self.add_mat_attrib_to_queue_button.setDisabled(False)
+            self.parent
         try:
             self.materialStep = int(self.materialStepEdit.text())
         except ValueError:

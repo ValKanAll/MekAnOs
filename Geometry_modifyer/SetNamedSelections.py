@@ -1261,16 +1261,11 @@ def filter(t, data):
     return t, y
 
 
-def add_endplates_ns(mesh, stl_path, pstf_path=None, write=False):
-    #detect_endplate(stl_path, sample=3000, distance=0.2, plot=1, endplate_height=2)
-    if not pstf_path:
-        pstf_path = stl_path.replace('stl', 'pstf')
+def add_endplates_ns(mesh, pstf_path='', write=False):
     thresh_1, thresh_2, direction, origin = read_pstf_vertebra(pstf_path)
     print('Adding endplates to :', mesh.get_path())
     mesh.read()
-    node_list = mesh.get_node_list()
-    #node_coord = np.array([node.get_coord() for node in node_list])
-    #mean_mesh = np.array([node_coord[:, 0].mean(), node_coord[:, 1].mean(), node_coord[:, 2].mean()])
+
     lonely_faces_nodes = mesh.get_lonely_faces_nodes()
     ns_list = mesh.get_named_selections_list()
 
@@ -1297,7 +1292,7 @@ def add_endplates_ns(mesh, stl_path, pstf_path=None, write=False):
     ns_list.append(['ENDPLATE_TOP', endplate_2])
 
     mesh.set_named_selections_list(ns_list)
-    #new_path = mesh.get_path().split(".cdb")[0] + "_endplates.cdb"
+
     if write:
         mesh.write()
     for ns in mesh.get_named_selections_list():
