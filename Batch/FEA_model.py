@@ -13,7 +13,6 @@ from Material_assignment.Conversion_equations import E2density, density2E
 from Structure.Mekamesh import Mekamesh
 
 
-
 class FEA_model(object):
 
     def __init__(self, dataset_name, sample, segmentation):
@@ -59,7 +58,7 @@ class FEA_model(object):
     def detect_endplates(self, plot=1):
         """
         if plot = 0 : no plot
-        if plot == 1 :
+        if plot == 1 : plot vertebra with endplates
         """
         # create pstf file
         detect_endplate(self.stl_path, sample=2000, distance=0.2, plot=plot, endplate_height=2)
@@ -95,7 +94,7 @@ class FEA_model(object):
         self.qctma_mesh_base = self.mesh_base + '_qctma_' + str(delta_E) + 'min' + str(min_E)
         self.qctma_mesh_path = os.path.join(self.mekamesh_folder, self.qctma_mesh_base + '.cdb')
         qctma(dcm_path=self.dicom_folder, nrrd_path=self.nrrd_path, mesh_path=self.mesh_path, gl2density=self.gl2density,
-                    density2E=density2E, deltaE=self.delta_E, process=True, save_mesh_path=self.qctma_mesh_path)
+                    density2E=density2E(min_E), E2density=E2density, deltaE=self.delta_E, coef_poisson=0.3, process=True, save_mesh_path=self.qctma_mesh_path)
 
         return self.qctma_mesh_base
 
@@ -108,9 +107,11 @@ class FEA_model(object):
                                           write=False)
         self.mekamesh.write()
 
-    def add_endplates(self):
-        add_endplates_ns(self.mekamesh_path, self.pstf_file)
-        pass
+    def add_endplates(self, pstf_file=None):
+        if pstf_file:
+            add_endplates_ns(self.mekamesh_path, pstf_file)
+        else:
+            add_endplates_ns(self.mekamesh_path, self.pstf_file)
 
     def simulate(self):
         pass

@@ -472,6 +472,7 @@ displacement.YComponent.Output.DiscreteValues = [Quantity(str(0.0) + ' [mm]')]
 displacement.ZComponent.Output.DiscreteValues = [Quantity(str(0.001) + ' [mm]')]
 
 ### PREPARE OUTPUT ###
+#volume_init
 volume = model.Analyses[0].Solution.AddVolume()
 volume.DisplayOption = ResultAveragingType.ElementalMean
 
@@ -479,6 +480,40 @@ volume.DisplayOption = ResultAveragingType.ElementalMean
 displacement.Suppressed = False
 ExtAPI.DataModel.Project.Model.Analyses[0].Solution.Solve(True)
 solution = model.Analyses[0].Solution
+#volume_export
+volume.ExportToTextFile(True, volume_path)
+'''
+
+act_template_get_properties = \
+r'''
+#### Paths ####
+volume_path = r'{volume_path}'
+
+#### Values ####
+model = ExtAPI.DataModel.Project.Model
+
+# FIXED #
+fixed = model.Analyses[0].AddNodalDisplacement()
+fixed.Location = model.NamedSelections.Children[1]
+fixed.XComponent.Output.DiscreteValues = [Quantity('0 [mm]')]
+fixed.YComponent.Output.DiscreteValues = [Quantity('0 [mm]')]
+fixed.ZComponent.Output.DiscreteValues = [Quantity('0 [mm]')]
+# DISPLACED #
+displacement = model.Analyses[0].AddNodalDisplacement()
+displacement.Location = model.NamedSelections.Children[2]
+displacement.XComponent.Output.DiscreteValues = [Quantity(str(0.0) + ' [mm]')]
+displacement.YComponent.Output.DiscreteValues = [Quantity(str(0.0) + ' [mm]')]
+displacement.ZComponent.Output.DiscreteValues = [Quantity(str(0.001) + ' [mm]')]
+
+### PREPARE OUTPUT ###
+#volume_init
+#jacobian_init
+
+### SOLUTION FOR IMPOSED DISPLACEMENT ###
+displacement.Suppressed = False
+ExtAPI.DataModel.Project.Model.Analyses[0].Solution.Solve(True)
+solution = model.Analyses[0].Solution
+#volume_export
 volume.ExportToTextFile(True, volume_path)
 '''
 

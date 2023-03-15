@@ -1,5 +1,4 @@
 from Writers.cdb_writer import write_cdb_file
-from Structure.Material import Material
 from Readers.Mechanical_law_reader import global_list_EX, global_list_EY, global_list_EZ, \
                                             global_list_PM, global_list_YS,\
                                             global_list_NUXY, global_list_NUXZ, global_list_NUYZ,\
@@ -74,13 +73,11 @@ def return_mechanical_law_from_config(config):
         mechanical_law_list.append(global_list_PM[0])
         mechanical_law_list.append(global_list_YS[5])
 
-
     elif config == 'A0B7C1P5EPP07':
         mechanical_law_list.append(global_list_EX[12])
         mechanical_law_list.append(global_list_NUXY[1])
         mechanical_law_list.append(global_list_PM[0])
         mechanical_law_list.append(global_list_YS[5])
-
 
     elif config == 'KopEL':
         mechanical_law_list.append(global_list_EX[3])
@@ -91,7 +88,6 @@ def return_mechanical_law_from_config(config):
         mechanical_law_list.append(global_list_NUXY[2])
 
     return mechanical_law_list
-
 
 
 def set_property(mekamesh, new_mechanical_law_list):
@@ -155,8 +151,6 @@ def create_new_mekamesh_from_mekamesh(mekamesh, config_meca, write=False):
     """
     # data from mesh
     mekamesh.read()
-    elementList = mekamesh.get_element_list()
-
     new_path = mekamesh.get_path().split('.cdb')[0] + '_' + config_meca + '.cdb'
     mekamesh.modify_path(new_path)
 

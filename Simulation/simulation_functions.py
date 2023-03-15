@@ -13,18 +13,18 @@ from Global_paths import ansysWB_path
 
 
 def distance(point_a, point_b):
+    '''
+    Calculate distance between two points
+    '''
     xa, ya, za = point_a
     xb, yb, zb = point_b
     return np.sqrt((xa-xb)**2 + (ya-yb)**2 + (za-zb)**2)
 
 
-def diff(point_a, point_b):
-    xa, ya, za = point_a
-    xb, yb, zb = point_b
-    return xa-xb, ya-yb, za-zb
-
-
 def get_height(_mekamesh_path, _result_path):
+    '''
+    Get height from mean coordinates of each endplates priorly detected
+    '''
     try:
         print(_mekamesh_path)
         point_a, point_b = read_mean_coordinates_named_selection(_mekamesh_path, _mekamesh_path, only_endplates=True)
@@ -195,6 +195,50 @@ def simu_gen_mesh(_mesh_path, _stl_path, _act_script_path, _wb_script_path, elem
     except:
         print("ERROR : %s" % _wb_script_path)
         return 1
+
+
+def simu_get_mesh_properties(_mesh_path, _result_folder_path, properties, _act_script_path, _wb_script_path):
+    _is_volume = False
+    _is_jacobian = False
+
+    mesh_base = os.path.basename(_mesh_path).split('.')[0]
+    act_script = act_scripts.act_template_get_properties
+
+    if 'volume' in properties:
+        _is_volume = True
+        _volume_path = os.path.join(_result_folder_path, mesh_base + '_volume.txt')
+        act_script = act_script.replace("{volume_path}", _volume_path)
+        act_script = act_script.replace('#volume_init',
+                                        'volume = model.Analyses[0].Solution.AddVolume()\n' +
+                                        'volume.DisplayOption = ResultAveragingType.ElementalMean\n'
+                                        )
+        act_script = act_script.replace('#volume_export',
+                                        'volume.ExportToTextFile(True, volume_path)\n')
+    if 'jacobian' in properties:
+        _is_jacobian = True
+    try:
+        with open(_act_script_path, 'w+') as f:
+            f.write(act_script)
+
+        _wb_script_simulation = wb_scripts.wb_script_simulation_EPP
+        _wb_script_simulation = _wb_script_simulation.replace("{mekamesh_path}", _mesh_path)
+        _wb_script_simulation = _wb_script_simulation.replace("{path_act}", _act_script_path)
+
+        with open(_wb_script_path, 'w+') as f:
+            f.write(_wb_script_simulation)
+
+        _cmd = r'"{}"  -B -R "{}"'.format(ansysWB_path, _wb_script_path)
+        print("\tGET VOLUME of {}\n".format(_mesh_path))
+        print("\tCMD: ", _cmd)
+        t0 = datetime.datetime.now()
+        print("\tStarted at: ", t0)
+        subprocess.check_call(_cmd, shell=True)
+        t1 = datetime.datetime.now()
+        print("\tDuration: ", t1 - t0)
+    except subprocess.CalledProcessError as error:
+        print(error)
+        print("### ERROR : %s" % _mesh_path)
+
 
 
 def simu_EPP(_mekamesh_path, _result_reaction_file, _act_script_path, _wb_script_path, factor=1.9/100, norm=False):
