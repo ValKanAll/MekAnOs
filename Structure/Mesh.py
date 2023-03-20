@@ -1,5 +1,5 @@
-from Readers.cdb_reader import read_cdbfile
-from Writers.cdb_writer import write_cdb_file
+from Reader.cdb_reader import read_cdbfile
+from Writer.cdb_writer import write_cdb_file
 import datetime
 import numpy as np
 import random

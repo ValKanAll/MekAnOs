@@ -129,11 +129,8 @@ def read_mkbl_file(path):
     f.close()
 
 import os
-print(os.getcwd())
-try:
-    read_mkbl_file('module/Data/Litterature_laws.mkbl')
-except FileNotFoundError:
-    read_mkbl_file('../../Data/Litterature_laws.mkbl')
+from Global_paths import literature_laws_path
+read_mkbl_file(literature_laws_path)
 
 
 

@@ -1,7 +1,7 @@
 import datetime
 import subprocess
 
-"""Purpose of this script is to launch any workbench script"""
+"""Purpose of this script is to launch any workbench script from its path"""
 
 wb_script_path = r"E:\Data_IBHGC\WB_scripts\448_L3_VB_QT_2_wb_script.py"
 

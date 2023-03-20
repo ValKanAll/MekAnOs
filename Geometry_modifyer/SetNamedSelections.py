@@ -1,6 +1,6 @@
-from module.Structure.Mesh import Mesh
-from module.Reader.xml_reader import read_position_file
-from module.Writer.xml_writer import write_position_file
+from Structure.Mesh import Mesh
+from Reader.xml_reader import read_position_file
+from Writer.xml_writer import write_position_file
 import numpy as np
 import random
 import itertools

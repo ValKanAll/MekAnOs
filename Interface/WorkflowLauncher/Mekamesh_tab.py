@@ -2,12 +2,12 @@ from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QScrollArea, QSlider, QVBoxLayout, QWidget)
 
-from Readers.Mechanical_law_reader import global_list_EX, global_list_EY, global_list_EZ, \
+from Reader.Mechanical_law_reader import global_list_EX, global_list_EY, global_list_EZ, \
                                             global_list_PM, global_list_YS,\
                                             global_list_NUXY, global_list_NUXZ, global_list_NUYZ,\
                                             global_list_GXY, global_list_GXZ, global_list_GYZ
 
-#from MekAnos.Material_assignment.module.Converters.ModifyMechanicalLaw import create_new_mekamesh_from_mekamesh
+#from MekAnos.Material_assignment.module.Converters.ModifyMechanicalLaw import set_config_meca_for_mekamesh
 
 from Interface.CustomClasses import CustomQToolButton
 
@@ -296,7 +296,7 @@ class Mekamesh_tab(QWidget):
         self.materialStepType = "material number - equal step"
 
         for mekamesh in self.selectedMeshesList:
-            mekamesh = create_new_mekamesh_from_mekamesh(mekamesh,
+            mekamesh = set_config_meca_for_mekamesh(mekamesh,
                                                      self.config,
                                                      self.mechanicalLawList,
                                                      self.materialStepType, self.materialStep, self.approximation)

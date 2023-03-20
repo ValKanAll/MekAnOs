@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLay
                              QPushButton, QScrollArea, QStackedLayout, QVBoxLayout, QWidget)
 
 
-#from MekAnos.Material_assignment.module.Converters.ModifyMechanicalLaw import create_new_mekamesh_from_mekamesh
+#from MekAnos.Material_assignment.module.Converters.ModifyMechanicalLaw import set_config_meca_for_mekamesh
 
 
 class Simulation_tab(QWidget):

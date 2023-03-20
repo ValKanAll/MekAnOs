@@ -461,7 +461,7 @@ class qctma(object):
         if save_mesh_path == "":
             save_mesh_path = os.path.splitext(self.mesh_path)[0] + "_QCTMA.cdb"
         if save_mesh_path.lower().endswith(".cdb"):
-            write_cdb_mat(self.mesh_path, save_mesh_path, self.matid, self.e_pool, self.density_pool, self.coef_poisson)
+            write_cdb_mat(self.mesh_path, save_mesh_path, self.matid, self.e_pool, self.density_pool)
         else:
             warnings.warn(
                 "WARNING: Extension of the desired save path of the mesh not recognized. Unable to save the Mesh.")

@@ -1,10 +1,10 @@
 import os
 import subprocess
 import datetime
-from Readers.cdb_reader import read_mean_coordinates_named_selection
-from Vector_cone_error import rotate_error_cone
-import ANSYS_default_scripts.act_scripts as act_scripts
-import ANSYS_default_scripts.wb_scripts as wb_scripts
+from Reader.cdb_reader import read_mean_coordinates_named_selection
+from Simulation.Vector_cone_error import rotate_error_cone
+import Simulation.ANSYS_default_scripts.act_scripts as act_scripts
+import Simulation.ANSYS_default_scripts.wb_scripts as wb_scripts
 import numpy as np
 import copy
 from stl import mesh
@@ -240,16 +240,46 @@ def simu_get_mesh_properties(_mesh_path, _result_folder_path, properties, _act_s
         print("### ERROR : %s" % _mesh_path)
 
 
-
-def simu_EPP(_mekamesh_path, _result_reaction_file, _act_script_path, _wb_script_path, factor=1.9/100, norm=False):
+def simu_displacement_height(_mekamesh_path, _result_reaction_file, _act_script_path, _wb_script_path, factor=1.9/100):
     try:
         print(_mekamesh_path)
         point_a, point_b = read_mean_coordinates_named_selection(_mekamesh_path, _mekamesh_path, only_endplates=True)
         point_a = np.array(point_a)
         point_b = np.array(point_b)
         disp = (point_a - point_b) * factor
-        if norm:
-            disp = disp / np.linalg.norm(disp)
+
+        print("\tDISPLACEMENT : ", disp, 'mm corresponding to {} % of height'.format(str(factor)))
+        act_script = act_scripts.act_template_EPP
+        act_script = act_script.replace("{result_reaction_file}", _result_reaction_file)
+        act_script = act_script.replace("{disp}", str(list(disp)))
+        act_script = act_script.replace("{is_EL}", "False")
+        act_script = act_script.replace("{ID_mekamesh}", _mekamesh_path.split('\\')[-1].split('.cdb')[0])
+        with open(_act_script_path, 'w+') as f:
+            f.write(act_script)
+
+        _wb_script_simulation = wb_scripts.wb_script_simulation_EPP
+        _wb_script_simulation = _wb_script_simulation.replace("{mekamesh_path}", _mekamesh_path)
+        _wb_script_simulation = _wb_script_simulation.replace("{path_act}", _act_script_path)
+
+        with open(_wb_script_path, 'w+') as f:
+            f.write(_wb_script_simulation)
+
+        _cmd = r'"{}"  -B -R "{}"'.format(ansysWB_path, _wb_script_path)
+        print("\tCMD: ", _cmd)
+        t0 = datetime.datetime.now()
+        print("\tStarted at: ", t0)
+        subprocess.check_call(_cmd, shell=True)
+        t1 = datetime.datetime.now()
+        print("\tDuration: ", t1 - t0)
+    except (subprocess.CalledProcessError, FileNotFoundError) as error:
+        print(error)
+        print("### ERROR : %s" % _mekamesh_path)
+
+
+def simu_displacement(_mekamesh_path, _result_reaction_file, _act_script_path, _wb_script_path, disp):
+    try:
+        print(_mekamesh_path)
+
 
         print("\tDISPLACEMENT : ", disp, 'mm')
         act_script = act_scripts.act_template_EPP
@@ -267,7 +297,7 @@ def simu_EPP(_mekamesh_path, _result_reaction_file, _act_script_path, _wb_script
         with open(_wb_script_path, 'w+') as f:
             f.write(_wb_script_simulation)
 
-        _cmd = r'"C:\Program Files\ANSYS Inc\v211\Framework\bin\Win64\RunWB2.exe"  -B -R "%s"' % _wb_script_path
+        _cmd = r'"{}"  -B -R "{}"'.format(ansysWB_path, _wb_script_path)
         print("\tCMD: ", _cmd)
         t0 = datetime.datetime.now()
         print("\tStarted at: ", t0)

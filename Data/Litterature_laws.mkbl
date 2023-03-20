@@ -48,11 +48,6 @@
 3 PM_1kPa PM 0.001 0 1 0 MPa
 3 PM_1Pa PM 0.000001 0 1 0 MPa
 
-# Configuration
-0 Keller et al. (1994)/1,0/4,0
-0 Kopperdahl et al. (2002)/1,3/4,1/10,0/11,0
-0 Morgan et al. (2003)/1,5/4,0
-0 Prado et al. (2020) - n°3/1,6/4,0/10,1/11,0
 
 
 

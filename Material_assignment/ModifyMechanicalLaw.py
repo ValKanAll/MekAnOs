@@ -1,8 +1,6 @@
-from Writers.cdb_writer import write_cdb_file
-from Readers.Mechanical_law_reader import global_list_EX, global_list_EY, global_list_EZ, \
-                                            global_list_PM, global_list_YS,\
-                                            global_list_NUXY, global_list_NUXZ, global_list_NUYZ,\
-                                            global_list_GXY, global_list_GXZ, global_list_GYZ
+from Writer.cdb_writer import write_cdb_file
+from Reader.Mechanical_law_reader import global_list_EX, global_list_PM, global_list_YS,\
+                                            global_list_NUXY
 
 
 def return_mechanical_law_from_config(config):
@@ -143,7 +141,7 @@ def set_property(mekamesh, new_mechanical_law_list):
                 mechanical_law_list.append(new_mechanical_law)
 
 
-def create_new_mekamesh_from_mekamesh(mekamesh, config_meca, write=False):
+def set_config_meca_for_mekamesh(mekamesh, config_meca, write=False):
     """
     Modifies mechanical properties of mechanical mesh (mekamesh)
     :param mekamesh: type Mekamesh, read mesh and its mechanical properties.

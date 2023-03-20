@@ -1,8 +1,8 @@
+import numpy as np
+from Structure.Material import Material
+from Structure.Node import  Node
 from Structure.Element import Element
 from Structure.MekaElement import MekaElement
-from Structure.Node import Node
-from Structure.Material import Material
-import numpy as np
 
 
 def read_cdbfile(path, mesh=None, print_occurence_file_by_element=True, print_occurence_file_by_material=False):
@@ -67,6 +67,7 @@ def read_cdbfile(path, mesh=None, print_occurence_file_by_element=True, print_oc
             if line.find("EBLOCK") != -1:
                 line = f.readline()
                 ELEM_LEN = int(line.split(',')[0].replace(')', '').split('i')[1])
+                LINE_LEN = int(line.split(',')[0].replace('(', '').split('i')[0])
                 ELEM_START = 10  # Table of connection doesn't start before the 10th value
                 extract_elems = True
                 line = f.readline()
@@ -100,7 +101,12 @@ def read_cdbfile(path, mesh=None, print_occurence_file_by_element=True, print_oc
                         index += 1
                 if index == len(material_list):
                     new_material = Material(material_id)
-                    new_material.set_element_occurence(dict_frequency_material[material_id])
+                    try:
+
+                        new_material.set_element_occurence(dict_frequency_material[material_id])
+                    except KeyError:
+                        print('Warning : material number {} do not contain elements'.format(material_id))
+                        new_material.set_element_occurence(0)
                     #print(material_id)
                     material_list.append(new_material)
 
@@ -183,7 +189,7 @@ def read_cdbfile(path, mesh=None, print_occurence_file_by_element=True, print_oc
                     extract_elems = False
                     line = f.readline()
                     continue
-                line += f.readline()
+                line = f.readline()
                 line = line.replace("\n", '')
                 ID_material = int(line[:ELEM_LEN])
                 try:
@@ -255,6 +261,7 @@ def read_cdbfile(path, mesh=None, print_occurence_file_by_element=True, print_oc
         z = np.array(z)
 
         return elems, materials, nodes, x, y, z'''
+
 
 def get_element_occurence(path, result_path=None, all_prop=False):
     """
@@ -501,7 +508,7 @@ def read_mean_coordinates_named_selection(cdb_path, named_selection_path="", onl
     named_selection_list = read_named_selection_nodes(named_selection_path)
     mean_coordinates = []
     for named_selection in named_selection_list:
-        if named_selection[0].find("ENDPLATE") == -1 and only_endplates:
+        if named_selection[0].find("ENDPLATE_TOP") == -1 and named_selection[0].find("ENDPLATE_BOTTOM") == -1 and only_endplates:
             pass
         else:
             x_list = []
@@ -554,6 +561,156 @@ def distance(point_a, point_b):
 def distance_endplates(cdb_path, named_selection_path=""):
     point_a, point_b = read_mean_coordinates_named_selection(cdb_path, named_selection_path, only_endplates=True)
     return distance(point_a, point_b)
+
+
+def read_cdbfile_return_dict_element_density(path):
+    """
+    Extract the elements number and their associated material from a cdb mesh file.
+    :param path: Path to the cdb file.
+    :param is_mekamesh: if True, adds material property to element
+    :return: Elements number array and associated materials, Nodes and associated coordinates x, y and z arrays.
+    """
+    # EXTRACTING THE TABLES OF CONNECTION AND COORDINATES
+    load_elements = False
+    extract_material = True
+    node_list = []
+    element_list = []
+    material_list = []
+    dict_frequency_material = {}  # count occurence of materials
+
+    materials = []  # Material property number
+    elems = []  # Table of connection
+    with open(path, 'r', errors="ignore") as f:
+        # Open the mesh_file_path file to extract the table of connection and the table of coordinates.
+        extract_nodes = False
+        extract_elems = False
+        extract_plastic_prop = False
+        line = f.readline()
+        while line:
+            #print(line)
+            # DETECTING TABLE OF CONNECTION (ELEMENTS)
+            if line.find("EBLOCK") != -1:
+                line = f.readline()
+                ELEM_LEN = int(line.split(',')[0].replace(')', '').split('i')[1])
+                ELEM_START = 10  # Table of connection doesn't start before the 10th value
+                extract_elems = True
+                line = f.readline()
+                continue
+
+            # DETECTING AND EXTRACTING TABLE OF MATERIALS
+            # ELASTIC PROPERTIES
+            if line.find("MPDATA") != -1 and extract_material:
+                prop = line.split(',')
+                material_id = int(prop[4])
+                index = 0
+                for material in material_list:
+                    id_mat = material['ID']
+                    if material_id == id_mat:
+                        continue
+                    else:
+                        index += 1
+                if index == len(material_list):
+                    new_material = {'ID': material_id}
+                    material_list.append(new_material)
+
+                if prop[3].find('EX') != -1:
+                    material_list[index]['EX'] = float(prop[6])
+                if prop[3].find('EY') != -1:
+                    material_list[index]['EY'] = float(prop[6])
+                if prop[3].find('EZ') != -1:
+                    material_list[index]['EZ'] = float(prop[6])
+
+                if prop[3].find('NUXY') != -1 or prop[3].find('PRXY') != -1:
+                    material_list[index]['NUXY'] = float(prop[6])
+                if prop[3].find('NUYZ') != -1 or prop[3].find('PRYZ') != -1:
+                    material_list[index]['NUYZ'] = float(prop[6])
+                if prop[3].find('NUXZ') != -1 or prop[3].find('PRXZ') != -1:
+                    material_list[index]['NUXZ'] = float(prop[6])
+
+                if prop[3].find('GXY') != -1:
+                    material_list[index]['GXY'] = float(prop[6])
+                if prop[3].find('GYZ') != -1:
+                    material_list[index]['GYZ'] = float(prop[6])
+                if prop[3].find('GXZ') != -1:
+                    material_list[index]['GXZ'] = float(prop[6])
+
+                if prop[3].find('DENS') != -1:
+                    material_list[index]['DENS'] = float(prop[6])
+
+                #print(line)
+                line = f.readline()
+                continue
+            # PLASTIC PROPERTIES
+            if line.find('TB,BISO') != -1 and extract_material:
+                prop = line.split(',')
+                material_id = int(prop[2])
+                index = 0
+                for material in material_list:
+                    id_mat = material['ID']
+                    if material_id == id_mat:
+                        continue
+                    else:
+                        index += 1
+                if index == len(material_list):
+                    material_list.append(new_material)
+
+                extract_plastic_prop = True
+                line = f.readline()
+                continue
+            if extract_plastic_prop:
+                if line.find('TBDAT') != -1:
+                    prop = line.split(',')
+                    material_list[index]['YS'] = float(prop[2])
+                    material_list[index]['PM'] = float(prop[3])
+                    extract_plastic_prop = False
+                    line = f.readline()
+                    continue
+
+            # EXTRACTING
+            if extract_elems:
+                if line.find("-1") != -1:
+                    extract_elems = False
+                    line = f.readline()
+                    continue
+                line += f.readline()
+                line = line.replace("\n", '')
+                ID_material = int(line[:ELEM_LEN])
+                try:
+                    dict_frequency_material[ID_material] += 1
+                except KeyError:
+                    dict_frequency_material[ID_material] = 1
+                # Count  number of elements with same element type
+                line_elem = [int(line[i * ELEM_LEN:(i + 1) * ELEM_LEN]) for i in
+                             range(ELEM_START, len(line) // ELEM_LEN)]
+
+                if extract_material:
+                    ID_element = line_elem[0]
+                    element_list.append([ID_element, ID_material])
+                else:
+                    materials.append(ID_material)
+                    elems.append(line_elem)
+                line = f.readline()
+                #print(line)
+                continue
+
+            line = f.readline()
+    f.close()
+
+    dict_rho_by_element = {}
+    for element in element_list:
+        ID_element = element[0]
+        ID_material = element[1]
+        for material in material_list:
+            id = material['ID']
+            if id == ID_material:
+                dict_rho_by_element[ID_element] = material['DENS']
+                continue
+            else:
+                index += 1
+
+    return dict_rho_by_element, material_list
+
+
 
 
 

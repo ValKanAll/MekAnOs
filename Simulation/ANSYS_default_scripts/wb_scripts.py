@@ -5,7 +5,6 @@ SetScriptVersion(Version="19.3.111")
 
 STL_PATH = r"{stl_path}"
 SCRIPT_PATH = r"{act_script_path}"
-edit = {edit}
     
 unitSystem1 = SetProjectUnitSystem(UnitSystemName="NMM_STANDARD")
 
@@ -18,9 +17,7 @@ modelComponent = system.GetComponent(Name="Model")
 modelComponent.Refresh()
 
 Simulation.RunScript(FilePath=SCRIPT_PATH, IsMeshing=False, ModelName="Model")
-if edit:
-    model = system.GetContainer(ComponentName="Model")
-    model.Edit()
+
 """
 
 wb_script_simulation_default = \

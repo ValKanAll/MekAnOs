@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (QGridLayout, QWidget)
 
 
-#from MekAnos.Material_assignment.module.Converters.ModifyMechanicalLaw import create_new_mekamesh_from_mekamesh
+#from MekAnos.Material_assignment.module.Converters.ModifyMechanicalLaw import set_config_meca_for_mekamesh
 
 
 class BoundaryConditions_tab(QWidget):
