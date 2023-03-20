@@ -130,7 +130,7 @@ class FEA_model(object):
             self.mekamesh.write()
 
     def simulate(self, result_path, boundary_conditions='UC', failure_criteria_type='total_strain', value=1.9/100, process=False):
-         if process:
+        if process:
             script_base = self.mekamesh_base + '_' + boundary_conditions + '_' + failure_criteria_type + '_' + str(value)
             act_script_path = os.path.join(self.act_script_folder, script_base + '.py')
             wb_script_path = os.path.join(self.wb_script_folder, script_base + '.wbjn')
