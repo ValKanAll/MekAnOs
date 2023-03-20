@@ -121,18 +121,22 @@ class FEA_model(object):
         else:
             self.mekamesh = Mekamesh(path=self.mekamesh_path)
 
+    def add_endplates(self, pstf_file=None, process=False):
+        if process:
+            if pstf_file:
+                add_endplates_ns(self.mekamesh, pstf_file)
+            else:
+                add_endplates_ns(self.mekamesh, self.pstf_file)
+            self.mekamesh.write()
 
-    def add_endplates(self, pstf_file=None):
-        if pstf_file:
-            add_endplates_ns(self.mekamesh, pstf_file)
-        else:
-            add_endplates_ns(self.mekamesh, self.pstf_file)
-        self.mekamesh.write()
+    def simulate(self, result_path, boundary_conditions='UC', failure_criteria_type='total_strain', value=1.9/100, process=False):
+         if process:
+            script_base = self.mekamesh_base + '_' + boundary_conditions + '_' + failure_criteria_type + '_' + str(value)
+            act_script_path = os.path.join(self.act_script_folder, script_base + '.py')
+            wb_script_path = os.path.join(self.wb_script_folder, script_base + '.wbjn')
 
-    def simulate(self, result_path):
-        act_script_path = os.path.join(self.act_script_folder, self.mekamesh_base + '_simu_disp_height.py')
-        wb_script_path = os.path.join(self.wb_script_folder, self.mekamesh_base + '_simu_disp_height.wbjn')
-        simu_displacement_height(self.mekamesh_path, result_path, act_script_path, wb_script_path, 1.9/100)
+            if boundary_conditions == 'UC' and failure_criteria_type == 'total_strain':
+                simu_displacement_height(self.mekamesh_path, result_path, act_script_path, wb_script_path, value)
 
 if __name__ == '__main__': # pas touche
     pass

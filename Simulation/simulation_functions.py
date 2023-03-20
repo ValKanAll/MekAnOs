@@ -248,7 +248,7 @@ def simu_displacement_height(_mekamesh_path, _result_reaction_file, _act_script_
         point_b = np.array(point_b)
         disp = (point_a - point_b) * factor
 
-        print("\tDISPLACEMENT : ", disp, 'mm corresponding to {} % of height'.format(str(factor)))
+        print("\tDISPLACEMENT : ", disp, 'mm corresponding to {} % of height'.format(str(factor*100)))
         act_script = act_scripts.act_template_EPP
         act_script = act_script.replace("{result_reaction_file}", _result_reaction_file)
         act_script = act_script.replace("{disp}", str(list(disp)))

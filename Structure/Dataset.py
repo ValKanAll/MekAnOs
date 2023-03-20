@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Dataset:
-    def __init__(self, name, xl_dataset, main_folder, scans_list):
+    def __init__(self, name, xl_dataset, main_folder, segmentation_list):
         self.sample_ID_list = xl_dataset['Sample_ID'].to_list()
         self.properties = ['Sample_ID', 'Age', 'Sex', 'Vertebral_level', 'F_exp(N)', 'Disp_exp(mm)', 'Annotation', 'Tumor type']
 
@@ -10,8 +10,7 @@ class Dataset:
         self.name = name
 
         self.main_folder = main_folder
-        self.scans_list = scans_list
-        print(self.scans_list)
+        self.segmentation_list = segmentation_list
 
         self.chosen_sample_ID_list = []
         for sample_ID in self.sample_ID_list:

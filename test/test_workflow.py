@@ -8,7 +8,9 @@ all the way to the estimation of bone strength.
 detect_endplates = False
 create_mesh = False
 inject_materials = False
-attribute_law = True
+attribute_law = False
+add_endplates = False
+simulate = True
 
 '''
 First, define a model by choosing the dataset name, sample name and segmentation
@@ -17,7 +19,7 @@ Information is gathered in Data/Samples.xlsx
 # Parameters to define model
 dataset_name = 'Wegrzyn et al. (2011)'  # Source et al. (year)
 sample = '01_2007'
-segmentation = '328mic_VB_EF'  # Resolution_number+mic_VB_initials operator #TODO put it clearer on excel
+segmentation = '328mic_VB_EF'  # Resolution_number+mic_VB_initials operator
 # Model definition
 model = FEA_model(dataset_name, sample, segmentation)
 
@@ -82,10 +84,10 @@ model.set_constitutive_laws(config, process=attribute_law)
 Sixth, add boundary conditions selection, especially endplates here.
 Endplates are added from .pstf file
 '''
-model.add_endplates()
+model.add_endplates(process=add_endplates)
 
 '''
 Seventh, simulate
 '''
-result_path=r"E:\Data_L3\test_result_17_03_23.txt"  # add path-result\filename.txt
-model.simulate(result_path)
+result_path = r"E:\Data_L3\test_result_17_03_23.txt"  # add path-result\filename.txt
+model.simulate(result_path, process=simulate)
