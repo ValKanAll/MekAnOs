@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class MechanicalLaw:
     def __init__(self, law_name, law_property, a, b, c, min_value=0.001, site='', source='', densitometric_measure='', unit=''):
         self.law_name = law_name
@@ -69,6 +72,52 @@ class MechanicalLaw:
         self.b = b
         self.c = c
         return self.a, self.b, self.c
+
+    def set_min_value(self, min_value):
+        self.min_value = min_value
+
+    def get_density2E(self):
+        _min_E = self.min_value
+        intercept = self.a
+        slope = self.b
+        c = self.c
+
+        def dens2E(rho_mat):
+            s = rho_mat.shape
+            E_mat = np.zeros(s)
+
+            if len(s) == 1:
+                for i in range(len(rho_mat)):
+                    E_mat[i] = max(intercept + slope * rho_mat[i] ** c, _min_E)
+            elif len(s) == 2:
+                for i in range(s[0]):
+                    for j in range(s[1]):
+                        E_mat[i, j] = max(intercept + slope * rho_mat[i, j] ** c, _min_E)
+            elif len(s) == 3:
+                for i in range(s[0]):
+                    for j in range(s[1]):
+                        if len(s) == 3:
+                            for k in range(s[2]):
+                                E_mat[i, j, k] = max(intercept + slope * rho_mat[i, j, k] ** c, _min_E)
+
+            return E_mat
+
+        return dens2E
+
+    def get_E2density(self):
+        intercept = self.a
+        slope = self.b
+        c = self.c
+
+        def E2density(E_mat):
+            rho_mat = []
+            for i in range(len(E_mat)):
+                rho_mat.append(((E_mat[i] - intercept) / slope) ** (1 / c))
+                # rho_mat.append(max(((E_mat[i] - intercept) / slope) ** (1/c), min_rho))
+
+            return rho_mat
+
+        return E2density
 
 
 EX_Keller1994SpinePower = MechanicalLaw('Keller1994SpinePower', 'EX', 0, 1890, 1.92, 0.001, 'spine', 'Keller (1994)', 'rho_ash', 'MPa')

@@ -1,4 +1,4 @@
-from Batch.FEA_model import FEA_model
+from Workflow.FEA_model import FEA_model
 
 ''' WORKFLOW
 This script creates a finite element model of vertebral body using the segmentation 
@@ -60,34 +60,29 @@ model.create_mesh(element_type, param, process=create_mesh)
 '''
 Fourth, the affectation of density to each element by positioning the mesh into the scan.
 Using QCTMA, each element is attributed a mean density weighed by the proportion of volume of each voxel inside the 
-element. Densities are then converted to Young's modulus using Kopperdahl et al. (2002) linear relationship. Materials
+element. Densities are then converted to Young's modulus using the density to E relationship in the given config. Materials
 are limited using the delta_E value. Materials are gathered in delta_E steps.
 For example if delta_E equals 10 MPa, there will be a material each 10 MPa.
 This is due to Ansys not being able to handle a high number of materials. min_E is the minimum value affected for the 
 materials. A value too low might create issues with weak elements highly distorted.
+Finally, each material is affected properties described in the given config
 '''
 # Parameters for material attribution
 delta_E = 20
 min_E = 1
+config = 'KopEPP07'
 
 # Material attribution
-model.inject_materials(delta_E, min_E, process=inject_materials)
+model.inject_materials(delta_E, min_E, config=config)
 
 '''
-Fifth, attribution of constitutive law
-Each config has a name and can be found in Data/Literature_laws.mkbl
-'''
-config = 'KopEPP10'
-model.set_constitutive_laws(config, process=attribute_law)
-
-'''
-Sixth, add boundary conditions selection, especially endplates here.
+Fifth, add boundary conditions selection, especially endplates here.
 Endplates are added from .pstf file
 '''
-model.add_endplates(process=add_endplates)
+model.add_endplates(process=True)
 
 '''
-Seventh, simulate
+Sixth, simulate
 '''
 result_path = r"E:\Data_L3\test_result_17_03_23.txt"  # add path-result\filename.txt
 model.simulate(result_path, process=simulate)

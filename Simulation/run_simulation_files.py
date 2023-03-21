@@ -8,7 +8,7 @@ from simulation_functions import (get_height,
                                   simu_EPP, simu_EPP_all_times, simu_EL, simu_get_volume,
                                   simu_gen_mesh_from_elemental_volume, simu_EPP_remote_point, simu_EPP_center_remote_point)
 
-from Batch.Choose_database import *
+from Workflow.Choose_database import *
 
 
 if is_JPR:

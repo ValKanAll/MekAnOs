@@ -280,7 +280,6 @@ def simu_displacement(_mekamesh_path, _result_reaction_file, _act_script_path, _
     try:
         print(_mekamesh_path)
 
-
         print("\tDISPLACEMENT : ", disp, 'mm')
         act_script = act_scripts.act_template_EPP
         act_script = act_script.replace("{result_reaction_file}", _result_reaction_file)

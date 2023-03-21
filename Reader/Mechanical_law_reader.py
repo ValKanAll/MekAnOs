@@ -128,7 +128,7 @@ def read_mkbl_file(path):
                 continue
     f.close()
 
-import os
+
 from Global_paths import literature_laws_path
 read_mkbl_file(literature_laws_path)
 

@@ -88,6 +88,15 @@ def return_mechanical_law_from_config(config):
     return mechanical_law_list
 
 
+def get_E_relationship_from_config(config):
+    law_list = return_mechanical_law_from_config(config)
+    for law in law_list:
+        if law.get_law_property() == 'EX':
+            return law
+    else:
+        assert AttributeError('Missing E property in config {}'.format(config))
+
+
 def set_property(mekamesh, new_mechanical_law_list):
     material_list = mekamesh.get_material_list()
     mechanical_law_list = mekamesh.get_mechanical_law_list()
