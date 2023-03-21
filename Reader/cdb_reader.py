@@ -71,6 +71,12 @@ def read_cdbfile(path, mesh=None, print_occurence_file_by_element=True, print_oc
                 ELEM_START = 10  # Table of connection doesn't start before the 10th value
                 extract_elems = True
                 line = f.readline()
+                IS2LINES = False
+                curs_pos = f.tell()
+                sec_line = f.readline()
+                if len(line) != len(sec_line):
+                    IS2LINES = True
+                f.seek(curs_pos)
                 continue
 
             if line.find("ET,") != -1 and load_elements and line.find("SET") == -1 and line.find("DELETE") == -1:
@@ -189,7 +195,9 @@ def read_cdbfile(path, mesh=None, print_occurence_file_by_element=True, print_oc
                     extract_elems = False
                     line = f.readline()
                     continue
-                line = f.readline()
+                if IS2LINES:
+                    line += f.readline()
+                #line = f.readline()
                 line = line.replace("\n", '')
                 ID_material = int(line[:ELEM_LEN])
                 try:

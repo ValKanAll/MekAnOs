@@ -3,7 +3,7 @@ import numpy as np
 
 class Dataset:
     def __init__(self, name, xl_dataset, main_folder, segmentation_list):
-        self.sample_ID_list = xl_dataset['Sample_ID'].to_list()
+        self.sample_ID_list = [str(sample) for sample in xl_dataset['Sample_ID'].to_list()]
         self.properties = ['Sample_ID', 'Age', 'Sex', 'Vertebral_level', 'F_exp(N)', 'Disp_exp(mm)', 'Annotation', 'Tumor type']
 
         self.xl_dataset = xl_dataset

@@ -32,6 +32,7 @@ class Batch(object):
             print('Sample = {}'.format(sample))
             for segmentation in self.segmentation_list:
                 FEmodel = FEA_model(dataset_name=self.dataset_name, sample=sample, segmentation=segmentation)
+                FEmodel.detect_endplates(0)
 
                 for mesh_params in self.mesh_parameters_list:
                     element_type, param = mesh_params
@@ -43,7 +44,7 @@ class Batch(object):
                             FEmodel.inject_materials(delta_E, min_E, config, check=self.check)
                             FEmodel.add_endplates(process=True)
 
-                            result_path = os.path.join(dataset.main_folder, str_time + '_results_{].txt'.format(model))
+                            result_path = os.path.join(self.dataset.main_folder, str_time + '_results_{}.txt'.format(model))
 
                             if model == 'Lyon':
                                 FEmodel.simulate(result_path, 'UC', None, 'total_strain', 1.9/100, True)

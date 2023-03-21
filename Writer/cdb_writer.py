@@ -65,7 +65,7 @@ def write_element_line(element, int_format, is_mekamesh=True):
     return output
 
 
-def write_node_block(file, node_list, int_format=7, float_format=(22, 13)):
+def write_node_block(file, node_list, int_format=10, float_format=(22, 13)):
     print('WRITE NODE BLOCK')
     num_node = len(node_list)
     part = num_node // 10

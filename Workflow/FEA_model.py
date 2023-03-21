@@ -106,7 +106,7 @@ class FEA_model(object):
         self.mekamesh_base = self.qctma_mesh_base + '_' + config
         self.mekamesh_path = os.path.join(self.mekamesh_folder, self.mekamesh_base + '.cdb')
 
-        if (check and not os.path.isfile(self.mekamesh_path)) or not check:
+        if (check and not os.path.isfile(self.qctma_mesh_path)) or not check:
             E_relationship = get_E_relationship_from_config(config)
             E_relationship.set_min_value(self.min_E)
             density2E = E_relationship.get_density2E()
@@ -116,11 +116,14 @@ class FEA_model(object):
                       density2E=density2E, E2density=E2density, deltaE=self.delta_E, coef_poisson=0.3,
                       process=True, save_mesh_path=self.qctma_mesh_path)
 
-        if (check and not os.path.isfile(self.qctma_mesh_path)) or not check:
+        if (check and not os.path.isfile(self.mekamesh_path)) or not check:
             self.mekamesh = Mekamesh(path=self.qctma_mesh_path)
             self.mekamesh.read()
             set_config_meca_for_mekamesh(self.mekamesh, config, write=False)
             self.mekamesh.write()
+
+        else:
+            self.mekamesh = Mekamesh(path=self.mekamesh_path)
 
     def set_constitutive_laws(self, config, check=True, save_mesh_path=''):
         self.mekamesh_base = self.qctma_mesh_base + '_' + config
