@@ -44,9 +44,9 @@ class Batch(object):
                             FEmodel.inject_materials(delta_E, min_E, config, check=self.check)
                             FEmodel.add_endplates(process=True)
 
-                            result_path = os.path.join(self.dataset.main_folder, str_time + '_results_{}.txt'.format(model))
+                            result_path = os.path.join(self.dataset.main_folder, str_time + '_results_{}.txt'.format(self.model))
 
-                            if model == 'Lyon':
+                            if self.model == 'Lyon':
                                 FEmodel.simulate(result_path, 'UC', None, 'total_strain', 1.9/100, True)
 
 
@@ -55,7 +55,11 @@ class Batch(object):
 
 if __name__ == '__main__':
     dataset = 'Wegrzyn et al. (2011)'
-    segmentation = '984mic_VB'
+    segmentation_list = ['984mic_VB']
+    mesh_param_list = [['QTV', 1]]
+    qctma_param_list = [[10, 0.1], [10, 0.01], [10, 0.001]]
+    config_list = ['KopEPP07']
     model = 'Lyon'
-    b = Batch('Wegrzyn et al. (2011)')
+    b = Batch('Wegrzyn et al. (2011)', segmentation_list, mesh_param_list, qctma_param_list, config_list)
+
     b.process()
