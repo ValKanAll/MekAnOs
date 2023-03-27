@@ -6,7 +6,7 @@ import datetime
 
 
 class Batch(object):
-    def __init__(self, dataset_name, segmentation_list=['984mic_VB'],
+    def __init__(self, dataset_name, sample_list=None, segmentation_list=['984mic_VB'],
                  mesh_parameters_list=[['QTV', 1]], qctma_parameters_list=[[10, 1]],
                  config_list=['KopEPP07'],
                  model='Lyon', check=True):
@@ -18,6 +18,11 @@ class Batch(object):
         '''
         self.dataset = read_dataset_info(dataset_path, dataset_name)
         self.dataset_name = dataset_name
+        if sample_list:
+            self.sample_list = sample_list
+        else:
+            self.sample_list = self.dataset.sample_ID_list
+
         self.segmentation_list = segmentation_list
         self.mesh_parameters_list = mesh_parameters_list
         self.qctma_parameters_list = qctma_parameters_list
@@ -28,7 +33,7 @@ class Batch(object):
 
     def process(self):
         str_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        for sample in self.dataset.sample_ID_list:
+        for sample in self.sample_list:
             print('Sample = {}'.format(sample))
             for segmentation in self.segmentation_list:
                 FEmodel = FEA_model(dataset_name=self.dataset_name, sample=sample, segmentation=segmentation)

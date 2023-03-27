@@ -8,8 +8,8 @@ all the way to the estimation of bone strength.
 detect_endplates = False
 create_mesh = False
 inject_materials = False
-attribute_law = False
-add_endplates = False
+attribute_law = True
+add_endplates = True
 simulate = True
 
 '''
@@ -18,8 +18,8 @@ Information is gathered in Data/Samples.xlsx
 '''
 # Parameters to define model
 dataset_name = 'Wegrzyn et al. (2011)'  # Source et al. (year)
-sample = '01_2007'
-segmentation = '328mic_VB_EF'  # Resolution_number+mic_VB_initials operator
+sample = '17_2007'
+segmentation = '984mic_VB_EF'  # Resolution_number+mic_VB_initials operator
 # Model definition
 model = FEA_model(dataset_name, sample, segmentation)
 
@@ -27,7 +27,8 @@ model = FEA_model(dataset_name, sample, segmentation)
 Second, detect the endplates and generate a position file (.pstf) with its own axis and endplates threshold.
 If plot = 1, you can watch the results
 '''
-model.detect_endplates(plot=1, process=detect_endplates)
+
+model.detect_endplates(plot=1, check=False)
 
 '''
 Third, segmentation is converted to a mesh without mechanical properties (yet)
@@ -50,11 +51,12 @@ For D:  Defined a slice number in
 Example: QTV - Quadratic Tetrahedron defined by element volume in mm^3
 '''
 # Parameters for meshing
-element_type = 'LTN'
-param = 10000
+
+element_type = 'QTV'
+param = 1
 
 # Meshing command
-model.create_mesh(element_type, param, process=create_mesh)
+model.create_mesh(element_type, param, check=False)
 
 
 '''
@@ -68,12 +70,12 @@ materials. A value too low might create issues with weak elements highly distort
 Finally, each material is affected properties described in the given config
 '''
 # Parameters for material attribution
-delta_E = 20
+delta_E = 10
 min_E = 1
 config = 'KopEPP07'
 
 # Material attribution
-model.inject_materials(delta_E, min_E, config=config)
+model.inject_materials(delta_E, min_E, config=config, check=False)
 
 '''
 Fifth, add boundary conditions selection, especially endplates here.
@@ -86,3 +88,4 @@ Sixth, simulate
 '''
 result_path = r"E:\Data_L3\test_result_17_03_23.txt"  # add path-result\filename.txt
 model.simulate(result_path, process=simulate)
+
