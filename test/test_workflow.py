@@ -17,9 +17,9 @@ First, define a model by choosing the dataset name, sample name and segmentation
 Information is gathered in Data/Samples.xlsx
 '''
 # Parameters to define model
-dataset_name = 'Wegrzyn et al. (2011)'  # Source et al. (year)
-sample = '17_2007'
-segmentation = '984mic_VB_EF'  # Resolution_number+mic_VB_initials operator
+dataset_name = 'Lokbani et al. (2022)'  # Source et al. (year)
+sample = '01_2005'
+segmentation = 'L1_def_VB_transformed'# Resolution_number+mic_VB_initials operator
 # Model definition
 model = FEA_model(dataset_name, sample, segmentation)
 
@@ -86,6 +86,6 @@ model.add_endplates(process=True)
 '''
 Sixth, simulate
 '''
-result_path = r"E:\Data_L3\test_result_17_03_23.txt"  # add path-result\filename.txt
+result_path = r"H:\Data_WL\01_2005.txt"  # add path-result\filename.txt
 model.simulate(result_path, process=simulate)
 

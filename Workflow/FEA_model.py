@@ -7,10 +7,10 @@ from Geometry_modifyer.SetNamedSelections import detect_endplate, add_endplates_
 from Material_assignment.qctma import qctma
 from Material_assignment.ModifyMechanicalLaw import set_config_meca_for_mekamesh, get_E_relationship_from_config
 
-from Material_assignment.Conversion_equations import gl2density_JPR_HRpQCT, gl2density_IBHGC, gl2density_ARTORG_microCT
+from Material_assignment.Conversion_equations import gl2density_JPR_HRpQCT, gl2density_IBHGC, \
+    gl2density_ARTORG_microCT, gl2density_WL_HRpQCT_predefect, gl2density_MCC
 
 from Structure.Mekamesh import Mekamesh
-
 
 class FEA_model(object):
 
@@ -39,7 +39,8 @@ class FEA_model(object):
         elif self.dataset_name == "Choisne et al. (2018)":
             self.dicom_folder = None
             self.nrrd_path = os.path.join(self.folder_path, 'Seg_VB', 'Seg_' + self.sample[:-3] + '_VB.nrrd')
-            self.stl_path = os.path.join(self.folder_path, 'Segmentation', self.sample + '_' + self.segmentation + '.stl')
+            self.stl_path = os.path.join(self.folder_path, 'Segmentation', self.sample + '_' + self.segmentation
+                                         + '.stl')
             self.mesh_folder = os.path.join(self.folder_path, "Mesh")
             self.mekamesh_folder = os.path.join(self.folder_path, "Mekamesh")
             self.gl2density = gl2density_IBHGC
@@ -54,7 +55,25 @@ class FEA_model(object):
             self.mekamesh_folder = sample_folder
             self.gl2density = gl2density_ARTORG_microCT
 
-    def detect_endplates(self, plot=1, check=True):
+        elif self.dataset_name == "Lokbani et al. (2022)":
+            self.dicom_folder = os.path.join(self.folder_path, "Pre-defect_HRpQCT_DICOM", self.sample)
+            self.nrrd_path = None
+            self.stl_path = os.path.join(self.folder_path, "Segmentation", self.sample + "_" + self.segmentation
+                                         + '.stl')
+            self.mesh_folder = os.path.join(self.folder_path, "Mesh")
+            self.mekamesh_folder = os.path.join(self.folder_path, "MekaMesh")
+            self.gl2density = gl2density_WL_HRpQCT_predefect
+
+        elif self.dataset_name == "Mekanos (2022)":
+            self.dicom_folder = os.path.join(self.folder_path, self.sample.split("_")[0], "0" +
+                                             self.sample.split("_")[0] + "FOV36_DICOM")
+            self.nrrd_path = None
+            self.stl_path = os.path.join(self.folder_path, self.sample.split("_")[0], self.sample + '.stl')
+            self.mesh_folder = os.path.join(self.folder_path, "Mesh")
+            self.mekamesh_folder = os.path.join(self.folder_path, "Mesh")
+            self.gl2density = gl2density_MCC
+
+    def detect_endplates(self, plot=1, check=False):
         """
         if plot = 0 : no plot
         if plot == 1 : plot vertebra with endplates
@@ -64,9 +83,9 @@ class FEA_model(object):
 
         if check:
             if not(os.path.isfile(self.pstf_file)):
-                detect_endplate(self.stl_path, sample=5000, distance=0.2, plot=plot, endplate_height=3)
+                detect_endplate(self.stl_path, sample=3000, distance=0.2, plot=plot, endplate_height=3.5)
         else:
-            detect_endplate(self.stl_path, sample=5000, distance=0.2, plot=plot, endplate_height=3)
+            detect_endplate(self.stl_path, sample=4000, distance=0.2, plot=plot, endplate_height=4.5)
 
     def create_mesh(self, element_type='QTV', param=1, check=True, mesh_save_path=""):
         """
